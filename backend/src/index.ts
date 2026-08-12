@@ -17,6 +17,10 @@ import eventRoutes from './routes/events';
 import settingsRoutes from './routes/settings';
 import auditLogRoutes from './routes/auditLog';
 import pushRoutes from './routes/push';
+import leadRoutes from './routes/leads';
+import dropoutReasonRoutes from './routes/dropoutReasons';
+import studentRoutes from './routes/students';
+import reportRoutes from './routes/reports';
 import { startAlertScheduler } from './services/alertScheduler';
 
 dotenv.config();
@@ -45,6 +49,10 @@ app.use('/api/events', eventRoutes);
 app.use('/api/settings', settingsRoutes);
 app.use('/api/audit-log', auditLogRoutes);
 app.use('/api/push', pushRoutes);
+app.use('/api/leads', leadRoutes);
+app.use('/api/dropout-reasons', dropoutReasonRoutes);
+app.use('/api/students', studentRoutes);
+app.use('/api/reports', reportRoutes);
 
 app.use((err: Error, _req: Request, res: Response, _next: NextFunction) => {
   console.error(err);

@@ -13,7 +13,8 @@ Branding source: https://www.betnua.co.il/ — dusty-rose logo (~#DCBABC), mauve
 ## Product decisions locked
 
 ### Core product shape
-- Internal staff app only — no client/student accounts, no public registration, no payments, no student roster/attendance in v1
+- Internal staff app only — no public registration, no payments, no attendance-taking
+- **Superseded by the Phase 2 addendum below**: a real Student/enrollment roster and a Leads module were added to support the digital-marketing plan (lead SLA tracking, dropout reporting). The "no student data" line above described v1 only.
 - Hebrew RTL UI, no other locales
 - Roles: `admin` / `editor` / `viewer`, each user has one global role plus an assigned set of branches; admins implicitly see/manage all 3 branches regardless of assignment
 - Admin creates all accounts directly and resets passwords manually — no self-registration, no self-service "forgot password" email flow
@@ -315,7 +316,7 @@ Branding source: https://www.betnua.co.il/ — dusty-rose logo (~#DCBABC), mauve
 ---
 
 ## Important implementation notes
-- No student/client records anywhere — capacity is an informational number, price is informational display only
+- Capacity on a course is still an informational max; price is still informational display only, no billing (student/enrollment tracking added in Phase 2 is about roster + dropouts, not payments)
 - No self-registration, no self-service password reset — admin manages all accounts
 - Rooms, course types, and branches are managed reference data, not free text, so filtering and conflict detection stay reliable
 - Build the PWA install-prompt for all users, not just suspected iPhone users — required for push to work on iOS, cheap to include for everyone
@@ -324,9 +325,92 @@ Branding source: https://www.betnua.co.il/ — dusty-rose logo (~#DCBABC), mauve
 
 ---
 
+## Addendum: Leads & Student Enrollment/Dropout Tracking (Phase 2)
+
+Driven by the studio's digital-marketing plan (lead funnel + SLA, retention). Two additions, deliberately scoped to reuse existing patterns rather than becoming a full CRM:
+
+### Leads
+- **Entry**: manual only for v1 — staff log every inbound inquiry (phone, WhatsApp, a website submission that currently arrives by email) themselves. `source` is a controlled field so a future website-form webhook can populate it automatically without a model change.
+- Fields: name (free text, not gender-specific), phone, branch of interest, source (`אתר` / `טלפון` / `רשתות_חברתיות` / `הפניה` / `אחר`), status, notes, who created it, timestamps.
+- Status lifecycle: `חדש` → `נוצר_קשר` → `בטיפול` → `נרשם` or `לא_רלוונטי`.
+- **SLA alert**: reuses the existing threshold/push pattern — if a lead sits in `חדש` past `leadSlaThresholdHours` (admin-configurable, default 4) with no contact logged, push-alert the branch's assigned editors + admins. Same `lastAlertedAt` dedup approach as events/tasks, extended to hours instead of days.
+- Access: branch-scoped, no per-lead assignee — any editor/admin assigned to that branch sees and can act on it (matches how courses/teachers are already scoped). Viewers read-only.
+- **Conversion**: marking a lead `נרשם` offers a "create student" action that pre-fills a new Student record (name, phone, branch) from the lead — the actual bridge between marketing and the roster.
+
+### Students & dropout tracking
+- Reverses the earlier "no student records" v1 decision — the studio wants real counts of who dropped, from which course/branch, and why.
+- A student can be enrolled in **multiple courses at once** (real-world case), and drop status is tracked **per enrollment**, not globally — a student can drop one course while staying in another.
+- Fields: name, guardian/parent phone (kept — this is the only realistic way staff can act on the data), and an embedded `enrollments` array (course, status, enrolled date, and — only when dropped — drop date/reason/note).
+- **Dropout reasons are an admin-managed reference list** (like CourseType), not a hardcoded enum — seeded with מחיר / חוסר זמן־התנגשות זמנים / מעבר מגורים / חוסר שביעות רצון / סיום עונה־גיל טבעי / אחר, editable (add/remove) from Settings.
+- **Reporting only, no automatic alerts** — a filterable dropout report (by branch/course/reason/time period) showing raw counts. No dropout-rate/percentage metric (would need a maintained "currently enrolled" denominator beyond what's needed here) and no push notification on dropout patterns — deliberately kept simple per the studio's own call.
+- Bonus, low-cost given the new data: the Courses view can now show real "enrolled / capacity" (e.g. "12/15") computed from active enrollments, instead of just the static capacity number.
+- Access: admin+editor branch-scoped CRUD (add student, manage enrollments, mark dropped); viewer read-only. Dropout-reason glossary is admin-only, in Settings. All changes audit-logged like every other entity.
+
+### New data models
+```ts
+// Lead
+{
+  name, phone,
+  branchId,          // ref Branch
+  source,            // 'אתר' | 'טלפון' | 'רשתות_חברתיות' | 'הפניה' | 'אחר'
+  status,            // 'חדש' | 'נוצר_קשר' | 'בטיפול' | 'נרשם' | 'לא_רלוונטי'
+  notes,
+  convertedStudentId, // ref Student, set once status = 'נרשם' and conversion happens
+  createdBy,          // ref User
+  lastAlertedAt,      // SLA dedup
+  createdAt, updatedAt
+}
+```
+```ts
+// DropoutReason
+{ name, isActive }
+```
+```ts
+// Student
+{
+  name, guardianPhone,
+  enrollments: [{
+    courseId,          // ref Course
+    status,            // 'פעיל' | 'פרש'
+    enrolledAt,
+    droppedAt,
+    dropoutReasonId,   // ref DropoutReason, set when status = 'פרש'
+    dropoutNote,
+  }],
+  createdAt, updatedAt
+}
+```
+```ts
+// AppSettings addition
+{ leadSlaThresholdHours }  // default 4
+```
+
+### New API endpoints
+- `GET/POST/PUT/DELETE /api/leads`, `PATCH /api/leads/:id/status`, `POST /api/leads/:id/convert` (creates the linked Student)
+- `GET/POST/PUT/DELETE /api/dropout-reasons`
+- `GET/POST/PUT/DELETE /api/students`, `POST /api/students/:id/enrollments`, `PATCH /api/students/:id/enrollments/:enrollmentId`
+- `GET /api/reports/dropouts` — aggregated counts, filterable by branch/course/reason/date range
+
+### New/changed views
+- **Leads**: table (name, phone, branch, source, status, created date), filters by branch/status/source, SLA badge when overdue, status dropdown per row, "המר לתלמיד/ה" action
+- **Students**: roster list (name, guardian phone, enrolled courses with status chips), filters by branch/course/status, add/edit, per-enrollment "סמן כפרש/ה" action (reason + note + date)
+- **Dropout report**: filterable counts table by branch/course/reason/month — no charts required for v1
+- **Courses**: capacity column becomes "נרשמים/מקסימום", computed from active enrollments
+- **Settings**: new "סיבות פרישה" tab (admin-managed list) alongside the existing thresholds/course-types/seasons/closures tabs; add `leadSlaThresholdHours` next to the existing two thresholds
+
+### Implementation order addendum
+13. DropoutReason glossary + Student model + roster UI + per-enrollment drop flow
+14. Dropout report (filterable, counts only, no alerts)
+15. Lead model + SLA alert (extends the existing alert scheduler) + Leads UI + lead→student conversion
+16. Courses view: real enrolled/capacity display from Student enrollments
+
+---
+
 ## Current repository status
 Initial scaffold is built and verified (git initialized, not yet committed):
 - **Backend**: all models, middleware, routes, services (room-conflict, hours-report, alert-threshold, push sender, cron scheduler), seed script, and unit tests are in place. `npm run build` and `npm test` (28 tests) pass. Requires a running MongoDB to actually serve requests.
 - **Frontend**: Vite/Tailwind/i18next scaffold, PWA manifest + custom service worker (push + notification-click handling), AuthContext/routing/RequireRole, and all pages (Login, ChangePassword, Dashboard, Branches, Teachers, TeacherDetail, Courses [grid+list], Events, EventDetail, Settings, UserManagement, AuditLog) are implemented against the API contract above. `npm run build` passes.
 - **CI**: `.github/workflows/ci.yml` runs backend build+test and frontend build on push/PR.
-- Not yet done: seeding real teacher/course/room data (rooms are seeded as generic placeholders "אולם 1"/"אולם 2" per branch — real room names need confirming with each branch), generating and configuring real VAPID keys, deploying to Vercel/Render/Atlas, and manual in-browser testing of the full flows (blocked on having a MongoDB instance available in this environment).
+- Not yet done: seeding real teacher/course/room data (rooms are seeded as generic placeholders "אולם 1"/"אולם 2" per branch — real room names need confirming with each branch), generating and configuring real VAPID keys, deploying to Vercel/Render/Atlas.
+- **Phase 2 addendum (Leads, Students, dropout tracking) is now built**: `Lead`/`Student`/`DropoutReason` models, branch-scoped routes, the lead-SLA cron extension, the dropout aggregation service, and the Leads/Students/DropoutReport pages + Settings tabs are all in place. `npm run build` and `npm test` (41 tests) pass on the backend; frontend build passes. Verified live end-to-end against a seeded ephemeral MongoDB: lead creation, student enrollment, marking an enrollment dropped (with reason/note), the resulting `enrolledCount` on courses, and the dropout report's branch/reason aggregation all behaved correctly, and the new pages (Leads, Students, DropoutReport, Settings → סיבות פרישה, Courses list) render with zero console errors.
+- Not committed to git yet.

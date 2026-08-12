@@ -20,10 +20,11 @@ router.get('/', asyncHandler<AuthRequest>(async (_req, res) => {
 }));
 
 router.put('/', requireRole('admin'), asyncHandler<AuthRequest>(async (req, res) => {
-  const { eventPrepareAlertThresholdDays, taskDueAlertThresholdDays } = req.body;
+  const { eventPrepareAlertThresholdDays, taskDueAlertThresholdDays, leadSlaThresholdHours } = req.body;
   const settings = await getOrCreateSettings();
   if (eventPrepareAlertThresholdDays !== undefined) settings.eventPrepareAlertThresholdDays = eventPrepareAlertThresholdDays;
   if (taskDueAlertThresholdDays !== undefined) settings.taskDueAlertThresholdDays = taskDueAlertThresholdDays;
+  if (leadSlaThresholdHours !== undefined) settings.leadSlaThresholdHours = leadSlaThresholdHours;
   await settings.save();
   res.json(settings);
 }));

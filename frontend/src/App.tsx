@@ -10,6 +10,9 @@ import TeacherDetail from './pages/TeacherDetail';
 import Courses from './pages/Courses';
 import Events from './pages/Events';
 import EventDetail from './pages/EventDetail';
+import Leads from './pages/Leads';
+import Students from './pages/Students';
+import DropoutReport from './pages/DropoutReport';
 import AuditLog from './pages/AuditLog';
 import UserManagement from './pages/UserManagement';
 import Settings from './pages/Settings';
@@ -48,6 +51,9 @@ export default function App() {
           <Route path="courses" element={<Courses />} />
           <Route path="events" element={<Events />} />
           <Route path="events/:id" element={<EventDetail />} />
+          <Route path="leads" element={<Leads />} />
+          <Route path="students" element={<Students />} />
+          <Route path="reports/dropouts" element={<DropoutReport />} />
           <Route
             path="audit-log"
             element={

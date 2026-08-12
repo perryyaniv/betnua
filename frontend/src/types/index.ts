@@ -77,6 +77,7 @@ export interface Course {
   capacity?: number;
   price?: number;
   isActive: boolean;
+  enrolledCount?: number;
 }
 
 export const DAY_NAMES = ['יום ראשון', 'יום שני', 'יום שלישי', 'יום רביעי', 'יום חמישי', 'יום שישי', 'יום שבת'];
@@ -118,6 +119,69 @@ export interface AppSettings {
   _id: string;
   eventPrepareAlertThresholdDays: number;
   taskDueAlertThresholdDays: number;
+  leadSlaThresholdHours: number;
+}
+
+export interface DropoutReason {
+  _id: string;
+  name: string;
+  isActive: boolean;
+}
+
+export type EnrollmentStatus = 'פעיל' | 'פרש';
+
+export interface Enrollment {
+  _id: string;
+  courseId: string | Course;
+  status: EnrollmentStatus;
+  enrolledAt: string;
+  droppedAt?: string | null;
+  dropoutReasonId?: string | DropoutReason | null;
+  dropoutNote?: string;
+}
+
+export interface Student {
+  _id: string;
+  name: string;
+  guardianPhone: string;
+  enrollments: Enrollment[];
+  createdAt: string;
+  updatedAt: string;
+}
+
+export type LeadSource = 'אתר' | 'טלפון' | 'רשתות_חברתיות' | 'הפניה' | 'אחר';
+export const LEAD_SOURCES: LeadSource[] = ['אתר', 'טלפון', 'רשתות_חברתיות', 'הפניה', 'אחר'];
+
+export type LeadStatus = 'חדש' | 'נוצר_קשר' | 'בטיפול' | 'נרשם' | 'לא_רלוונטי';
+export const LEAD_STATUSES: LeadStatus[] = ['חדש', 'נוצר_קשר', 'בטיפול', 'נרשם', 'לא_רלוונטי'];
+
+export interface Lead {
+  _id: string;
+  name: string;
+  phone: string;
+  branchId: string | Branch;
+  source: LeadSource;
+  status: LeadStatus;
+  notes: string;
+  convertedStudentId?: string | Student | null;
+  createdBy: string | User;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface DropoutReportRow {
+  studentName: string;
+  branchName: string;
+  reasonName: string;
+  dropoutNote?: string;
+  droppedAt: string;
+}
+
+export interface DropoutReport {
+  total: number;
+  byBranch: Record<string, number>;
+  byReason: Record<string, number>;
+  rows: DropoutReportRow[];
 }
 
 export interface AuditLogEntry {

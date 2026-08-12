@@ -5,13 +5,14 @@ import { getCourseTypes, createCourseType, deleteCourseType } from '../api/cours
 import { getSeasons, createSeason } from '../api/seasons';
 import { getClosures, createClosure, deleteClosure } from '../api/closures';
 import { getBranches } from '../api/branches';
-import { AppSettings, CourseType, Season, Closure, Branch } from '../types';
+import { getDropoutReasons, createDropoutReason, deleteDropoutReason } from '../api/dropoutReasons';
+import { AppSettings, CourseType, Season, Closure, Branch, DropoutReason } from '../types';
 import Card from '../components/ui/Card';
 import Button from '../components/ui/Button';
 import Spinner from '../components/ui/Spinner';
 import { formatDate } from '../utils/date';
 
-type Tab = 'thresholds' | 'courseTypes' | 'seasons' | 'closures';
+type Tab = 'thresholds' | 'courseTypes' | 'seasons' | 'closures' | 'dropoutReasons';
 
 export default function Settings() {
   const { t } = useTranslation();
@@ -21,22 +22,27 @@ export default function Settings() {
   const [seasons, setSeasons] = useState<Season[]>([]);
   const [closures, setClosures] = useState<Closure[]>([]);
   const [branches, setBranches] = useState<Branch[]>([]);
+  const [dropoutReasons, setDropoutReasons] = useState<DropoutReason[]>([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
 
   const [newCourseType, setNewCourseType] = useState({ name: '', colorTag: '#B26CA1' });
   const [newSeason, setNewSeason] = useState({ label: '', startDate: '', endDate: '' });
   const [newClosure, setNewClosure] = useState({ date: '', scope: 'all' as 'all' | 'branch', branchId: '', reason: '' });
+  const [newDropoutReason, setNewDropoutReason] = useState('');
 
   useEffect(() => {
-    Promise.all([getSettings(), getCourseTypes(), getSeasons(), getClosures(), getBranches()]).then(([s, ct, se, cl, b]) => {
-      setSettings(s);
-      setCourseTypes(ct);
-      setSeasons(se);
-      setClosures(cl);
-      setBranches(b);
-      setLoading(false);
-    });
+    Promise.all([getSettings(), getCourseTypes(), getSeasons(), getClosures(), getBranches(), getDropoutReasons()]).then(
+      ([s, ct, se, cl, b, dr]) => {
+        setSettings(s);
+        setCourseTypes(ct);
+        setSeasons(se);
+        setClosures(cl);
+        setBranches(b);
+        setDropoutReasons(dr);
+        setLoading(false);
+      }
+    );
   }, []);
 
   const handleSaveThresholds = async () => {
@@ -86,6 +92,23 @@ export default function Settings() {
     setClosures((prev) => prev.filter((c) => c._id !== id));
   };
 
+  const handleAddDropoutReason = async () => {
+    if (!newDropoutReason.trim()) return;
+    const created = await createDropoutReason(newDropoutReason.trim());
+    setDropoutReasons((prev) => [...prev, created]);
+    setNewDropoutReason('');
+  };
+
+  const handleDeleteDropoutReason = async (id: string) => {
+    try {
+      await deleteDropoutReason(id);
+      setDropoutReasons((prev) => prev.filter((r) => r._id !== id));
+    } catch (err: unknown) {
+      const msg = (err as { response?: { data?: { message?: string } } })?.response?.data?.message;
+      alert(msg || 'שגיאה');
+    }
+  };
+
   if (loading || !settings) return <Spinner />;
 
   const tabs: { key: Tab; label: string }[] = [
@@ -93,6 +116,7 @@ export default function Settings() {
     { key: 'courseTypes', label: t('settings.courseTypes') },
     { key: 'seasons', label: t('settings.seasons') },
     { key: 'closures', label: t('settings.closures') },
+    { key: 'dropoutReasons', label: t('settings.dropoutReasons') },
   ];
 
   return (
@@ -127,6 +151,15 @@ export default function Settings() {
               className="input"
               value={settings.taskDueAlertThresholdDays}
               onChange={(e) => setSettings((s) => (s ? { ...s, taskDueAlertThresholdDays: Number(e.target.value) } : s))}
+            />
+          </div>
+          <div>
+            <label className="label">{t('settings.leadSlaThresholdHours')}</label>
+            <input
+              type="number"
+              className="input"
+              value={settings.leadSlaThresholdHours}
+              onChange={(e) => setSettings((s) => (s ? { ...s, leadSlaThresholdHours: Number(e.target.value) } : s))}
             />
           </div>
           <Button loading={saving} onClick={handleSaveThresholds}>
@@ -229,6 +262,27 @@ export default function Settings() {
             />
             <Button size="sm" onClick={handleAddClosure} className="sm:col-span-2">
               {t('settings.addClosure')}
+            </Button>
+          </Card>
+        </div>
+      )}
+
+      {tab === 'dropoutReasons' && (
+        <div className="space-y-3">
+          <div className="flex flex-wrap gap-2">
+            {dropoutReasons.map((r) => (
+              <span key={r._id} className="inline-flex items-center gap-2 text-xs px-2 py-1 rounded-full bg-primary/10 text-primary">
+                {r.name}
+                <button onClick={() => handleDeleteDropoutReason(r._id)} className="text-primary/70 hover:text-primary">
+                  ×
+                </button>
+              </span>
+            ))}
+          </div>
+          <Card className="max-w-md flex gap-2 items-end">
+            <input className="input" placeholder={t('users.name')} value={newDropoutReason} onChange={(e) => setNewDropoutReason(e.target.value)} />
+            <Button size="sm" onClick={handleAddDropoutReason}>
+              {t('settings.addDropoutReason')}
             </Button>
           </Card>
         </div>

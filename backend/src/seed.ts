@@ -5,6 +5,7 @@ import Branch from './models/Branch';
 import CourseType from './models/CourseType';
 import Season from './models/Season';
 import AppSettings from './models/AppSettings';
+import DropoutReason from './models/DropoutReason';
 
 dotenv.config();
 
@@ -20,6 +21,8 @@ const COURSE_TYPES = [
   { name: 'אקרודאנס', colorTag: '#B2A16C' },
   { name: 'להקות ייצוגיות', colorTag: '#9C5389' },
 ];
+
+const DROPOUT_REASONS = ['מחיר', 'חוסר זמן / התנגשות זמנים', 'מעבר מגורים', 'חוסר שביעות רצון', 'סיום עונה / גיל טבעי', 'אחר'];
 
 const BRANCHES = [
   {
@@ -62,6 +65,11 @@ async function seed() {
   }
   console.log(`Seeded ${COURSE_TYPES.length} course types.`);
 
+  for (const name of DROPOUT_REASONS) {
+    await DropoutReason.findOneAndUpdate({ name }, { name }, { upsert: true, new: true });
+  }
+  console.log(`Seeded ${DROPOUT_REASONS.length} dropout reasons.`);
+
   const existingSeason = await Season.findOne({ label: 'שנת הריקודים 2026-2027' });
   if (!existingSeason) {
     await Season.create({
@@ -75,7 +83,7 @@ async function seed() {
 
   const existingSettings = await AppSettings.findOne();
   if (!existingSettings) {
-    await AppSettings.create({ eventPrepareAlertThresholdDays: 14, taskDueAlertThresholdDays: 7 });
+    await AppSettings.create({ eventPrepareAlertThresholdDays: 14, taskDueAlertThresholdDays: 7, leadSlaThresholdHours: 4 });
     console.log('Seeded default alert thresholds.');
   }
 

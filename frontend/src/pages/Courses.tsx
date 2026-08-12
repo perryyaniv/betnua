@@ -196,6 +196,7 @@ export default function Courses() {
                           </p>
                           <p className="text-gray-500">
                             {nameOf(teachers, c.teacherId)} · {c.roomName}
+                            {c.capacity ? ` · ${c.enrolledCount ?? 0}/${c.capacity}` : ''}
                           </p>
                         </div>
                       );
@@ -249,6 +250,7 @@ export default function Courses() {
                   <th className="px-3 py-2 text-right text-xs font-semibold text-gray-500 uppercase">שעות</th>
                   <th className="px-3 py-2 text-right text-xs font-semibold text-gray-500 uppercase">{t('courses.room')}</th>
                   <th className="px-3 py-2 text-right text-xs font-semibold text-gray-500 uppercase">{t('courses.ageGroup')}</th>
+                  <th className="px-3 py-2 text-right text-xs font-semibold text-gray-500 uppercase">{t('courses.capacity')}</th>
                   {canWrite && <th className="px-3 py-2 text-right text-xs font-semibold text-gray-500 uppercase">{t('common.actions')}</th>}
                 </tr>
               </thead>
@@ -266,6 +268,7 @@ export default function Courses() {
                     </td>
                     <td className="px-3 py-2">{c.roomName}</td>
                     <td className="px-3 py-2">{c.ageGroupLevel || '—'}</td>
+                    <td className="px-3 py-2 font-medium">{c.capacity ? `${c.enrolledCount ?? 0}/${c.capacity}` : '—'}</td>
                     {canWrite && (
                       <td className="px-3 py-2 flex gap-2">
                         <button className="text-xs text-primary" onClick={() => openEdit(c)}>

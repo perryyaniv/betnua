@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import Course from '../models/Course';
 import Branch from '../models/Branch';
+import Student from '../models/Student';
 import { authenticate, requireRole, AuthRequest } from '../middleware/auth';
 import { accessibleBranchIds, canWriteBranch } from '../utils/branchAccess';
 import { logAudit } from '../utils/auditLogger';
@@ -24,7 +25,18 @@ router.get('/', asyncHandler<AuthRequest>(async (req, res) => {
   if (isActive !== undefined) query.isActive = isActive === 'true';
 
   const courses = await Course.find(query).sort({ dayOfWeek: 1, startTime: 1 });
-  res.json(courses);
+
+  const activeStudents = await Student.find({ 'enrollments.status': 'פעיל' }).select('enrollments');
+  const enrolledCount = new Map<string, number>();
+  for (const student of activeStudents) {
+    for (const e of student.enrollments) {
+      if (e.status !== 'פעיל') continue;
+      const key = String(e.courseId);
+      enrolledCount.set(key, (enrolledCount.get(key) || 0) + 1);
+    }
+  }
+
+  res.json(courses.map((c) => ({ ...c.toObject(), enrolledCount: enrolledCount.get(String(c._id)) || 0 })));
 }));
 
 async function validateCourse(req: AuthRequest, excludeId?: string) {

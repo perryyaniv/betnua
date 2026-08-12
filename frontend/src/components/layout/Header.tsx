@@ -13,6 +13,9 @@ function usePageTitle() {
   if (path.startsWith('/teachers')) return t('nav.teachers');
   if (path.startsWith('/courses')) return t('nav.courses');
   if (path.startsWith('/events')) return t('nav.events');
+  if (path.startsWith('/leads')) return t('nav.leads');
+  if (path.startsWith('/students')) return t('nav.students');
+  if (path.startsWith('/reports/dropouts')) return t('nav.dropoutReport');
   if (path === '/audit-log') return t('nav.auditLog');
   if (path === '/users') return t('nav.userManagement');
   if (path === '/settings') return t('nav.settings');
@@ -34,6 +37,9 @@ export default function Header() {
     { to: '/teachers', label: t('nav.teachers'), show: true },
     { to: '/courses', label: t('nav.courses'), show: true },
     { to: '/events', label: t('nav.events'), show: true },
+    { to: '/leads', label: t('nav.leads'), show: true },
+    { to: '/students', label: t('nav.students'), show: true },
+    { to: '/reports/dropouts', label: t('nav.dropoutReport'), show: true },
     { to: '/audit-log', label: t('nav.auditLog'), show: isAdmin },
     { to: '/users', label: t('nav.userManagement'), show: isAdmin },
     { to: '/settings', label: t('nav.settings'), show: isAdmin },

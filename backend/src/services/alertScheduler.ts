@@ -1,8 +1,9 @@
 import cron from 'node-cron';
 import Event from '../models/Event';
+import Lead from '../models/Lead';
 import User from '../models/User';
 import AppSettings from '../models/AppSettings';
-import { isDueForAlert } from './alertThresholds';
+import { isDueForAlert, isStale } from './alertThresholds';
 import { sendPushToUser } from './pushSender';
 
 async function getThresholds() {
@@ -10,13 +11,15 @@ async function getThresholds() {
   return {
     eventPrepareAlertThresholdDays: settings?.eventPrepareAlertThresholdDays ?? 14,
     taskDueAlertThresholdDays: settings?.taskDueAlertThresholdDays ?? 7,
+    leadSlaThresholdHours: settings?.leadSlaThresholdHours ?? 4,
   };
 }
 
 /** Evaluates prepare-date and task-due-date thresholds and sends push alerts for newly-crossed ones. */
 export async function runAlertCheck(now = new Date()) {
-  const { eventPrepareAlertThresholdDays, taskDueAlertThresholdDays } = await getThresholds();
-  const adminIds = (await User.find({ role: 'admin', active: true }).select('_id')).map((u) => String(u._id));
+  const { eventPrepareAlertThresholdDays, taskDueAlertThresholdDays, leadSlaThresholdHours } = await getThresholds();
+  const admins = await User.find({ role: 'admin', active: true }).select('_id');
+  const adminIds = admins.map((u) => String(u._id));
 
   const openEvents = await Event.find({ status: { $nin: ['הושלם', 'בוטל'] } });
 
@@ -57,6 +60,30 @@ export async function runAlertCheck(now = new Date()) {
     }
 
     if (dirty) await event.save();
+  }
+
+  const newLeads = await Lead.find({ status: 'חדש', lastAlertedAt: null });
+  const branchStaff = await User.find({ role: 'editor', active: true }).select('_id branchIds');
+
+  for (const lead of newLeads) {
+    if (!isStale(lead.createdAt, leadSlaThresholdHours, lead.lastAlertedAt, now)) continue;
+
+    const editorIds = branchStaff
+      .filter((u) => u.branchIds.some((b) => String(b) === String(lead.branchId)))
+      .map((u) => String(u._id));
+    const recipients = new Set([...editorIds, ...adminIds]);
+
+    await Promise.all(
+      Array.from(recipients).map((userId) =>
+        sendPushToUser(userId, {
+          title: 'ליד מחכה למעלה מזמן ה-SLA',
+          body: lead.name,
+          url: `/leads/${lead._id}`,
+        })
+      )
+    );
+    lead.lastAlertedAt = now;
+    await lead.save();
   }
 }
 
