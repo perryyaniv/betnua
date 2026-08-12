@@ -92,12 +92,12 @@ async function seed() {
     await User.create({
       name: 'מנהל מערכת',
       username: 'admin',
-      password: 'Betnua2026!',
+      password: 'admin',
       role: 'admin',
       branchIds: [],
-      forcePasswordChange: true,
+      forcePasswordChange: false,
     });
-    console.log('Seeded default admin user (username: admin, password: Betnua2026!) — change on first login.');
+    console.log('Seeded default admin user (username: admin, password: admin).');
   }
 
   console.log('Seed complete.');

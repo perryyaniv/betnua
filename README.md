@@ -27,7 +27,7 @@ npm install
 npm run dev                        # http://localhost:5173
 ```
 
-Default seeded login: **admin / Betnua2026!** — the app forces a password change on first login.
+Default seeded login: **admin / admin** — no forced password change. Change this before relying on it for anything beyond local testing (see Known limitations).
 
 ### No MongoDB handy? Run against an ephemeral in-memory DB
 
@@ -51,6 +51,7 @@ npm test
 Covers the pure logic that's easy to get subtly wrong: alert-threshold timing, room-conflict detection, branch-access rules, and the teacher hours report — not an exhaustive UI test suite (see BETNUA_PLAN.md's testing notes).
 
 ## Known limitations to revisit
+- **The default admin login is `admin`/`admin` with no forced change** — a deliberate simplification during setup, but this app is reachable on the public internet once deployed. Change it (via the app's own change-password flow, or `backend/scripts/set-admin-password.ts`) before depending on this for real operational data.
 - The PWA icon (`frontend/public/logo.png`) is the current live-site logo at 233×170 — usable for the header/login screen, but not square, so it won't look ideal as a home-screen icon. Swap in a proper square icon (e.g. 512×512) when a better logo asset is available.
 - Push notifications require `VAPID_PUBLIC_KEY`/`VAPID_PRIVATE_KEY` in the backend `.env`; without them the app runs fine but silently skips sending pushes.
 - iOS only delivers web push to an installed (home-screen) PWA — the in-app install prompt (`InstallPrompt.tsx`) nudges users toward that, but there's no way to force it.
