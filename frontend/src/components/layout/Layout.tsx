@@ -62,7 +62,7 @@ export default function Layout() {
         <InstallPrompt />
         <Outlet />
       </main>
-      <footer className="hidden md:block fixed bottom-0 left-0 right-0 z-30 border-t border-white/10 bg-primary/95 backdrop-blur-sm">
+      <footer className="hidden md:block fixed bottom-0 left-0 right-0 z-30 border-t border-white/10 bg-primary">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 py-2.5 flex items-center justify-between">
           <p className="text-xs text-white/60">© {new Date().getFullYear()} בתנועה</p>
         </div>

@@ -3,6 +3,7 @@ import { Link, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../../contexts/AuthContext';
 import { ROLE_LABELS } from '../../utils/roles';
+import AppearanceMenu from '../AppearanceMenu';
 
 function usePageTitle() {
   const location = useLocation();
@@ -95,7 +96,9 @@ export default function Header() {
               <span className="text-white font-bold text-base">{pageTitle}</span>
             </div>
 
-            <div className="mr-auto z-10" />
+            <div className="mr-auto z-10">
+              <AppearanceMenu />
+            </div>
           </div>
         </div>
         <div className="h-1 bg-accent" />

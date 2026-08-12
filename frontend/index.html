@@ -16,6 +16,19 @@
   </head>
   <body>
     <div id="root"></div>
+    <script>
+      (function () {
+        try {
+          var theme = localStorage.getItem('betnua-theme');
+          if (theme) document.documentElement.setAttribute('data-theme', theme);
+          var scales = [0.875, 1, 1.125, 1.25, 1.375];
+          var idx = Number(localStorage.getItem('betnua-font-scale-index'));
+          if (Number.isInteger(idx) && idx >= 0 && idx < scales.length) {
+            document.documentElement.style.setProperty('--font-scale', String(scales[idx]));
+          }
+        } catch (e) {}
+      })();
+    </script>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>

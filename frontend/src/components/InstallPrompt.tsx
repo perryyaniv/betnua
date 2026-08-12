@@ -37,7 +37,7 @@ export default function InstallPrompt() {
   if (standalone && pushStatus === 'granted') return null;
 
   return (
-    <div className="bg-accent/30 border border-accent rounded-lg p-3 mb-4 flex items-center justify-between gap-3 flex-wrap">
+    <div className="bg-accent-wash border border-accent rounded-lg p-3 mb-4 flex items-center justify-between gap-3 flex-wrap">
       <div>
         <p className="text-sm font-semibold text-dark">{t('settings.installApp.title')}</p>
         <p className="text-xs text-gray-600">

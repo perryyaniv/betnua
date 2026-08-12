@@ -103,7 +103,7 @@ export default function Teachers() {
       <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
         {teachers.map((te) => (
           <Card key={te._id} className="flex gap-3">
-            <div className="w-14 h-14 rounded-full bg-accent/40 flex-shrink-0 overflow-hidden flex items-center justify-center text-lg font-bold text-primary">
+            <div className="w-14 h-14 rounded-full bg-accent-wash flex-shrink-0 overflow-hidden flex items-center justify-center text-lg font-bold text-primary">
               {te.photoUrl ? <img src={te.photoUrl} alt={te.name} className="w-full h-full object-cover" /> : te.name[0]}
             </div>
             <div className="flex-1">

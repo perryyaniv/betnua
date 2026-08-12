@@ -5,20 +5,22 @@ export default {
     extend: {
       colors: {
         primary: {
-          DEFAULT: '#9C5389',
-          dark: '#7A3D6B',
-          light: '#B26CA1',
+          DEFAULT: 'var(--color-primary)',
+          dark: 'var(--color-primary-dark)',
+          light: 'var(--color-primary-light)',
+          wash: 'var(--color-primary-wash)',
         },
         accent: {
-          DEFAULT: '#DCBABC',
-          dark: '#C79BA0',
-          light: '#ECD8DA',
+          DEFAULT: 'var(--color-accent)',
+          dark: 'var(--color-accent-dark)',
+          light: 'var(--color-accent-light)',
+          wash: 'var(--color-accent-wash)',
         },
-        bg: '#FAF7F8',
-        surface: '#FFFFFF',
-        dark: '#2A2230',
+        bg: 'var(--color-bg)',
+        surface: 'var(--color-surface)',
+        dark: 'var(--color-ink)',
         status: {
-          // Event lifecycle
+          // Event lifecycle — semantic colors stay constant across themes
           planned: '#9CA3AF',
           inPrep: '#F59E0B',
           done: '#16A34A',

@@ -205,7 +205,7 @@ export default function Settings() {
                   {formatDate(s.startDate)} – {formatDate(s.endDate)}
                 </p>
               </div>
-              {s.isActive && <span className="text-xs bg-primary/10 text-primary px-2 py-0.5 rounded-full">פעילה</span>}
+              {s.isActive && <span className="text-xs bg-primary-wash text-primary px-2 py-0.5 rounded-full">פעילה</span>}
             </Card>
           ))}
           <Card className="max-w-lg grid sm:grid-cols-3 gap-2 items-end">
@@ -271,9 +271,9 @@ export default function Settings() {
         <div className="space-y-3">
           <div className="flex flex-wrap gap-2">
             {dropoutReasons.map((r) => (
-              <span key={r._id} className="inline-flex items-center gap-2 text-xs px-2 py-1 rounded-full bg-primary/10 text-primary">
+              <span key={r._id} className="inline-flex items-center gap-2 text-xs px-2 py-1 rounded-full bg-primary-wash text-primary">
                 {r.name}
-                <button onClick={() => handleDeleteDropoutReason(r._id)} className="text-primary/70 hover:text-primary">
+                <button onClick={() => handleDeleteDropoutReason(r._id)} className="text-primary hover:text-primary-dark">
                   ×
                 </button>
               </span>

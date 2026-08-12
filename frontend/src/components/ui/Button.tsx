@@ -13,7 +13,9 @@ interface Props extends ButtonHTMLAttributes<HTMLButtonElement> {
 const variantClasses: Record<Variant, string> = {
   primary: 'bg-primary text-white hover:bg-primary-dark focus:ring-primary',
   secondary: 'bg-white text-primary border border-primary hover:bg-primary hover:text-white focus:ring-primary',
-  accent: 'bg-accent text-dark hover:bg-accent-dark focus:ring-accent',
+  // Fixed dark text, not the theme-dependent `dark` token: accent is a light/pastel
+  // tone in every theme including dark mode, so its text must stay dark regardless.
+  accent: 'bg-accent text-gray-900 hover:bg-accent-dark focus:ring-accent',
   danger: 'text-red-500 bg-transparent hover:text-red-700 hover:bg-red-50 focus:ring-red-400',
   dangerSolid: 'bg-red-600 text-white hover:bg-red-700 focus:ring-red-500',
   ghost: 'text-gray-600 bg-transparent hover:bg-gray-100 focus:ring-gray-300',

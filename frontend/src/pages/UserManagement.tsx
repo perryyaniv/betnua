@@ -147,7 +147,7 @@ export default function UserManagement() {
                   <td className="px-4 py-3">
                     <span
                       className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${
-                        u.active ? 'bg-primary/10 text-primary' : 'bg-gray-100 text-gray-500'
+                        u.active ? 'bg-primary-wash text-primary' : 'bg-gray-100 text-gray-500'
                       }`}
                     >
                       {u.active ? 'פעיל' : 'לא פעיל'}

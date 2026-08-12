@@ -38,7 +38,7 @@ export default function TeacherDetail() {
       </Link>
 
       <Card className="flex gap-4">
-        <div className="w-20 h-20 rounded-full bg-accent/40 flex-shrink-0 overflow-hidden flex items-center justify-center text-2xl font-bold text-primary">
+        <div className="w-20 h-20 rounded-full bg-accent-wash flex-shrink-0 overflow-hidden flex items-center justify-center text-2xl font-bold text-primary">
           {teacher.photoUrl ? <img src={teacher.photoUrl} alt={teacher.name} className="w-full h-full object-cover" /> : teacher.name[0]}
         </div>
         <div>

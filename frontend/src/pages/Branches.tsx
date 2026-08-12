@@ -95,7 +95,7 @@ export default function Branches() {
             </div>
             <div className="mt-3 flex flex-wrap gap-1.5">
               {b.rooms.map((r) => (
-                <span key={r._id} className="text-xs bg-accent/40 text-dark px-2 py-0.5 rounded-full">
+                <span key={r._id} className="text-xs bg-accent-wash text-dark px-2 py-0.5 rounded-full">
                   {r.name}
                 </span>
               ))}
