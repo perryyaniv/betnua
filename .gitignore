@@ -32,3 +32,7 @@ Thumbs.db
 
 # Personal Claude Code settings (machine-specific paths/permissions)
 .claude/settings.local.json
+
+# Scratch notes that may contain real secrets — never commit
+details.txt
+*.secrets.txt
