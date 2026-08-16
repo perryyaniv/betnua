@@ -229,15 +229,15 @@ export default function Courses() {
 
       {view === 'grid' && (
         <>
-          <div className="flex flex-nowrap gap-2 overflow-x-auto">
-            <select className="input flex-shrink-0 w-40" value={gridBranchId} onChange={(e) => setGridBranchId(e.target.value)}>
+          <div className="flex flex-nowrap gap-2">
+            <select className="input flex-1 min-w-0 px-1" value={gridBranchId} onChange={(e) => setGridBranchId(e.target.value)}>
               {branches.map((b) => (
                 <option key={b._id} value={b._id}>
                   {b.name}
                 </option>
               ))}
             </select>
-            <select className="input flex-shrink-0 w-40" value={gridTroupeId} onChange={(e) => setGridTroupeId(e.target.value)}>
+            <select className="input flex-1 min-w-0 px-1" value={gridTroupeId} onChange={(e) => setGridTroupeId(e.target.value)}>
               <option value="">{t('courses.filterAllTroupes')}</option>
               {troupes.map((tr) => (
                 <option key={tr._id} value={tr._id}>
@@ -246,7 +246,7 @@ export default function Courses() {
               ))}
             </select>
             <select
-              className="input flex-shrink-0 w-40"
+              className="input flex-1 min-w-0 px-1"
               value={gridAgeCategory}
               onChange={(e) => setGridAgeCategory(e.target.value as AgeCategory | '')}
             >
