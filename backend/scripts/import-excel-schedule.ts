@@ -308,6 +308,9 @@ async function run() {
 
         const teacherIds: mongoose.Types.ObjectId[] = [];
         let teacherResolutionFailed = parsed.teacherNamesRaw.length === 0;
+        if (teacherResolutionFailed) {
+          warnings.add(`[no teacher listed in source cell] ${addr}: ${text.replace(/\n/g, ' / ')}`);
+        }
         for (const rawTeacher of parsed.teacherNamesRaw) {
           const whole = resolveTeacherToken(rawTeacher, teachers);
           if (whole) {
