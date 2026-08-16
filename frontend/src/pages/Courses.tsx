@@ -14,6 +14,13 @@ import Modal from '../components/ui/Modal';
 import Spinner from '../components/ui/Spinner';
 import Badge from '../components/ui/Badge';
 
+function hexToRgba(hex: string, alpha: number) {
+  const m = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+  if (!m) return hex;
+  const [r, g, b] = [m[1], m[2], m[3]].map((x) => parseInt(x, 16));
+  return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+}
+
 function LockIcon({ label }: { label: string }) {
   return (
     <svg className="inline w-3.5 h-3.5 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" role="img" aria-label={label}>
@@ -267,8 +274,8 @@ export default function Courses() {
                       return (
                         <div
                           key={c._id}
-                          className="text-xs rounded-md p-2 border-r-4 bg-gray-50 cursor-pointer"
-                          style={{ borderRightColor: borderColor }}
+                          className="text-xs rounded-md p-2 border-2 border-r-8 cursor-pointer"
+                          style={{ borderColor, backgroundColor: hexToRgba(borderColor, 0.12) }}
                           onClick={() => canWrite && openEdit(c)}
                         >
                           <p className="font-semibold text-gray-800 flex items-center gap-1">
