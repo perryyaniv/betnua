@@ -13,20 +13,23 @@ export interface TeacherHoursRow {
   courseCount: number;
 }
 
-/** Sums weekly hours per teacher (optionally further split per branch) from a flat list of active courses. */
+/** Sums weekly hours per teacher (optionally further split per branch) from a flat list of active courses.
+ * A co-taught course (multiple teacherIds) counts in full toward each of its teachers. */
 export function computeWeeklyHours(
-  courses: Pick<ICourse, 'teacherId' | 'branchId' | 'startTime' | 'endTime'>[]
+  courses: Pick<ICourse, 'teacherIds' | 'branchId' | 'startTime' | 'endTime'>[]
 ): TeacherHoursRow[] {
   const byKey = new Map<string, TeacherHoursRow>();
   for (const course of courses) {
-    const teacherId = String(course.teacherId);
     const branchId = String(course.branchId);
-    const key = `${teacherId}:${branchId}`;
     const hours = durationHours(course.startTime, course.endTime);
-    const row = byKey.get(key) || { teacherId, branchId, weeklyHours: 0, courseCount: 0 };
-    row.weeklyHours += hours;
-    row.courseCount += 1;
-    byKey.set(key, row);
+    for (const rawTeacherId of course.teacherIds) {
+      const teacherId = String(rawTeacherId);
+      const key = `${teacherId}:${branchId}`;
+      const row = byKey.get(key) || { teacherId, branchId, weeklyHours: 0, courseCount: 0 };
+      row.weeklyHours += hours;
+      row.courseCount += 1;
+      byKey.set(key, row);
+    }
   }
   return Array.from(byKey.values());
 }

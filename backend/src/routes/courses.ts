@@ -2,6 +2,7 @@ import { Router } from 'express';
 import Course from '../models/Course';
 import Branch from '../models/Branch';
 import Student from '../models/Student';
+import Troupe from '../models/Troupe';
 import { authenticate, requireRole, AuthRequest } from '../middleware/auth';
 import { accessibleBranchIds, canWriteBranch } from '../utils/branchAccess';
 import { logAudit } from '../utils/auditLogger';
@@ -13,16 +14,19 @@ router.use(authenticate);
 
 router.get('/', asyncHandler<AuthRequest>(async (req, res) => {
   const accessible = accessibleBranchIds(req.user!);
-  const { branchId, teacherId, courseTypeId, seasonId, dayOfWeek, isActive } = req.query;
+  const { branchId, teacherId, courseTypeId, seasonId, dayOfWeek, isActive, troupeId, isOpen, ageCategory } = req.query;
 
   const query: Record<string, unknown> = {};
   if (accessible) query.branchId = { $in: accessible };
   if (branchId) query.branchId = branchId;
-  if (teacherId) query.teacherId = teacherId;
+  if (teacherId) query.teacherIds = teacherId;
   if (courseTypeId) query.courseTypeId = courseTypeId;
   if (seasonId) query.seasonId = seasonId;
   if (dayOfWeek !== undefined) query.dayOfWeek = Number(dayOfWeek);
   if (isActive !== undefined) query.isActive = isActive === 'true';
+  if (troupeId) query.$or = [{ troupeId }, { mandatoryForTroupeIds: troupeId }];
+  if (isOpen !== undefined) query.isOpen = isOpen === 'true';
+  if (ageCategory) query.ageCategory = ageCategory;
 
   const courses = await Course.find(query).sort({ dayOfWeek: 1, startTime: 1 });
 
@@ -40,7 +44,7 @@ router.get('/', asyncHandler<AuthRequest>(async (req, res) => {
 }));
 
 async function validateCourse(req: AuthRequest, excludeId?: string) {
-  const { branchId, roomName, seasonId, dayOfWeek, startTime, endTime } = req.body;
+  const { branchId, roomName, seasonId, dayOfWeek, startTime, endTime, troupeId, mandatoryForTroupeIds } = req.body;
 
   if (!canWriteBranch(req.user!, branchId)) {
     return { error: { status: 403, message: 'Forbidden for this branch' } };
@@ -50,6 +54,17 @@ async function validateCourse(req: AuthRequest, excludeId?: string) {
   if (!branch) return { error: { status: 400, message: 'Branch not found' } };
   if (!branch.rooms.some((r) => r.name === roomName)) {
     return { error: { status: 400, message: 'roomName is not a defined room for this branch' } };
+  }
+
+  if (troupeId) {
+    const troupe = await Troupe.findById(troupeId);
+    if (!troupe) return { error: { status: 400, message: 'Troupe not found' } };
+  }
+  if (mandatoryForTroupeIds?.length) {
+    const count = await Troupe.countDocuments({ _id: { $in: mandatoryForTroupeIds } });
+    if (count !== mandatoryForTroupeIds.length) {
+      return { error: { status: 400, message: 'One or more mandatoryForTroupeIds not found' } };
+    }
   }
 
   const others = await Course.find({

@@ -14,6 +14,7 @@
     "branches": "סניפים",
     "teachers": "מורים",
     "courses": "חוגים",
+    "troupes": "להקות",
     "events": "אירועים",
     "leads": "לידים",
     "students": "תלמידים",
@@ -85,7 +86,35 @@
     "capacity": "מספר מקומות",
     "price": "מחיר",
     "addCourse": "הוספת חוג",
-    "roomConflict": "התנגשות חדרים: יש חוג חופף באותו חדר וזמן"
+    "roomConflict": "התנגשות חדרים: יש חוג חופף באותו חדר וזמן",
+    "colorByType": "צבע לפי סוג",
+    "colorByAge": "צבע לפי גיל",
+    "ageCategory": "קבוצת גיל (צבע)",
+    "ageCategoryLabels": {
+      "youngest": "גני ילדים",
+      "midElementary": "יסודי (ב-ו)",
+      "teens": "נוער (ז-יב)",
+      "adultWomen": "בוגרות"
+    },
+    "isOpen": "פתוח/סגור",
+    "open": "פתוח",
+    "closed": "סגור",
+    "troupe": "להקה",
+    "mandatoryFor": "חובה ללהקות",
+    "filterAllTroupes": "כל הלהקות",
+    "filterAllAgeCategories": "כל קבוצות הגיל",
+    "filterAllOpenStatus": "הכל"
+  },
+  "troupes": {
+    "title": "להקות",
+    "addTroupe": "להקה חדשה",
+    "name": "שם הלהקה",
+    "members": "חברות הלהקה",
+    "addMember": "הוספה",
+    "removeMember": "הסרה",
+    "deactivateMember": "השבתה",
+    "reactivateMember": "הפעלה",
+    "noMembers": "אין חברות בלהקה"
   },
   "events": {
     "title": "אירועים",

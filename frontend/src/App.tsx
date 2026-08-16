@@ -8,6 +8,7 @@ import Branches from './pages/Branches';
 import Teachers from './pages/Teachers';
 import TeacherDetail from './pages/TeacherDetail';
 import Courses from './pages/Courses';
+import Troupes from './pages/Troupes';
 import Events from './pages/Events';
 import EventDetail from './pages/EventDetail';
 import Leads from './pages/Leads';
@@ -49,6 +50,7 @@ export default function App() {
           <Route path="teachers" element={<Teachers />} />
           <Route path="teachers/:id" element={<TeacherDetail />} />
           <Route path="courses" element={<Courses />} />
+          <Route path="troupes" element={<Troupes />} />
           <Route path="events" element={<Events />} />
           <Route path="events/:id" element={<EventDetail />} />
           <Route path="leads" element={<Leads />} />

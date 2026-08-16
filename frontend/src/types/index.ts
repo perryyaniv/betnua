@@ -63,17 +63,46 @@ export interface Teacher {
   isActive: boolean;
 }
 
+export type AgeCategory = 'youngest' | 'midElementary' | 'teens' | 'adultWomen';
+export const AGE_CATEGORIES: AgeCategory[] = ['youngest', 'midElementary', 'teens', 'adultWomen'];
+export const AGE_CATEGORY_COLORS: Record<AgeCategory, string> = {
+  youngest: '#EAD1DC',
+  midElementary: '#CFE2F3',
+  teens: '#455C75',
+  adultWomen: '#C27BA0',
+};
+
+export interface TroupeMembership {
+  _id: string;
+  studentId: string | Student;
+  joinedAt: string;
+  leftAt?: string | null;
+  isActive: boolean;
+}
+
+export interface Troupe {
+  _id: string;
+  name: string;
+  branchId: string | Branch;
+  members: TroupeMembership[];
+  isActive: boolean;
+}
+
 export interface Course {
   _id: string;
   branchId: string | Branch;
   courseTypeId: string | CourseType;
-  teacherId: string | Teacher;
+  teacherIds: string[] | Teacher[];
   seasonId: string | Season;
   dayOfWeek: number;
   startTime: string;
   endTime: string;
   roomName: string;
   ageGroupLevel: string;
+  ageCategory?: AgeCategory;
+  isOpen: boolean;
+  troupeId?: string | Troupe;
+  mandatoryForTroupeIds: string[] | Troupe[];
   capacity?: number;
   price?: number;
   isActive: boolean;

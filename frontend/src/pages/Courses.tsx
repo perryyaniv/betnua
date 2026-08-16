@@ -1,11 +1,12 @@
-import { useEffect, useMemo, useState } from 'react';
+import { ChangeEvent, useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { getCourses, createCourse, updateCourse, deleteCourse } from '../api/courses';
 import { getBranches } from '../api/branches';
 import { getCourseTypes } from '../api/courseTypes';
 import { getTeachers } from '../api/teachers';
 import { getSeasons } from '../api/seasons';
-import { Course, Branch, CourseType, Teacher, Season, DAY_NAMES } from '../types';
+import { getTroupes } from '../api/troupes';
+import { Course, Branch, CourseType, Teacher, Season, Troupe, AgeCategory, AGE_CATEGORIES, AGE_CATEGORY_COLORS, DAY_NAMES } from '../types';
 import { useAuth } from '../contexts/AuthContext';
 import { hasWriteAccess } from '../utils/roles';
 import Button from '../components/ui/Button';
@@ -16,16 +17,23 @@ import Badge from '../components/ui/Badge';
 const emptyForm = {
   branchId: '',
   courseTypeId: '',
-  teacherId: '',
+  teacherIds: [] as string[],
   seasonId: '',
   dayOfWeek: 0,
   startTime: '16:00',
   endTime: '17:00',
   roomName: '',
   ageGroupLevel: '',
+  ageCategory: '' as AgeCategory | '',
+  isOpen: true,
+  troupeId: '',
+  mandatoryForTroupeIds: [] as string[],
   capacity: undefined as number | undefined,
   price: undefined as number | undefined,
 };
+
+const getMultiSelectValues = (e: ChangeEvent<HTMLSelectElement>) =>
+  Array.from(e.target.selectedOptions).map((o) => o.value);
 
 export default function Courses() {
   const { t } = useTranslation();
@@ -33,17 +41,31 @@ export default function Courses() {
   const canWrite = hasWriteAccess(user?.role);
 
   const [view, setView] = useState<'grid' | 'list'>('grid');
+  const [colorBy, setColorBy] = useState<'type' | 'age'>('type');
   const [courses, setCourses] = useState<Course[]>([]);
   const [branches, setBranches] = useState<Branch[]>([]);
   const [courseTypes, setCourseTypes] = useState<CourseType[]>([]);
   const [teachers, setTeachers] = useState<Teacher[]>([]);
   const [seasons, setSeasons] = useState<Season[]>([]);
+  const [troupes, setTroupes] = useState<Troupe[]>([]);
   const [loading, setLoading] = useState(true);
   const [gridBranchId, setGridBranchId] = useState('');
-  const [filters, setFilters] = useState<{ branchId: string; teacherId: string; courseTypeId: string }>({
+  const [gridTroupeId, setGridTroupeId] = useState('');
+  const [gridAgeCategory, setGridAgeCategory] = useState<AgeCategory | ''>('');
+  const [filters, setFilters] = useState<{
+    branchId: string;
+    teacherId: string;
+    courseTypeId: string;
+    troupeId: string;
+    isOpen: string;
+    ageCategory: AgeCategory | '';
+  }>({
     branchId: '',
     teacherId: '',
     courseTypeId: '',
+    troupeId: '',
+    isOpen: '',
+    ageCategory: '',
   });
   const [editing, setEditing] = useState<Course | null>(null);
   const [addModal, setAddModal] = useState(false);
@@ -52,27 +74,43 @@ export default function Courses() {
   const [error, setError] = useState('');
 
   useEffect(() => {
-    Promise.all([getCourses(), getBranches(), getCourseTypes(), getTeachers(), getSeasons()]).then(([c, b, ct, te, s]) => {
-      setCourses(c);
-      setBranches(b);
-      setCourseTypes(ct);
-      setTeachers(te);
-      setSeasons(s);
-      setGridBranchId(b[0]?._id ?? '');
-      setLoading(false);
-    });
+    Promise.all([getCourses(), getBranches(), getCourseTypes(), getTeachers(), getSeasons(), getTroupes()]).then(
+      ([c, b, ct, te, s, tr]) => {
+        setCourses(c);
+        setBranches(b);
+        setCourseTypes(ct);
+        setTeachers(te);
+        setSeasons(s);
+        setTroupes(tr);
+        setGridBranchId(b[0]?._id ?? '');
+        setLoading(false);
+      }
+    );
   }, []);
 
   const idOf = (v: string | { _id: string }) => (typeof v === 'string' ? v : v._id);
   const nameOf = <T extends { _id: string; name: string }>(list: T[], v: string | T) =>
     (typeof v === 'string' ? list.find((x) => x._id === v)?.name : v.name) ?? '—';
+  const teacherNames = (ids: (string | Teacher)[]) =>
+    ids.length ? ids.map((id) => nameOf(teachers, id)).join(', ') : '—';
+  const matchesTroupe = (c: Course, troupeId: string) =>
+    !troupeId ||
+    (c.troupeId ? idOf(c.troupeId) === troupeId : false) ||
+    c.mandatoryForTroupeIds.some((x) => idOf(x) === troupeId);
 
   const activeSeason = seasons.find((s) => s.isActive) ?? seasons[0];
   const currentBranch = branches.find((b) => b._id === gridBranchId);
 
   const gridCourses = useMemo(
-    () => courses.filter((c) => idOf(c.branchId) === gridBranchId && c.isActive),
-    [courses, gridBranchId]
+    () =>
+      courses.filter(
+        (c) =>
+          idOf(c.branchId) === gridBranchId &&
+          c.isActive &&
+          matchesTroupe(c, gridTroupeId) &&
+          (!gridAgeCategory || c.ageCategory === gridAgeCategory)
+      ),
+    [courses, gridBranchId, gridTroupeId, gridAgeCategory]
   );
 
   const listCourses = useMemo(
@@ -80,8 +118,11 @@ export default function Courses() {
       courses.filter(
         (c) =>
           (!filters.branchId || idOf(c.branchId) === filters.branchId) &&
-          (!filters.teacherId || idOf(c.teacherId) === filters.teacherId) &&
-          (!filters.courseTypeId || idOf(c.courseTypeId) === filters.courseTypeId)
+          (!filters.teacherId || c.teacherIds.some((x) => idOf(x) === filters.teacherId)) &&
+          (!filters.courseTypeId || idOf(c.courseTypeId) === filters.courseTypeId) &&
+          matchesTroupe(c, filters.troupeId) &&
+          (!filters.isOpen || String(c.isOpen) === filters.isOpen) &&
+          (!filters.ageCategory || c.ageCategory === filters.ageCategory)
       ),
     [courses, filters]
   );
@@ -97,13 +138,17 @@ export default function Courses() {
     setForm({
       branchId: idOf(c.branchId),
       courseTypeId: idOf(c.courseTypeId),
-      teacherId: idOf(c.teacherId),
+      teacherIds: c.teacherIds.map(idOf),
       seasonId: idOf(c.seasonId),
       dayOfWeek: c.dayOfWeek,
       startTime: c.startTime,
       endTime: c.endTime,
       roomName: c.roomName,
       ageGroupLevel: c.ageGroupLevel,
+      ageCategory: c.ageCategory ?? '',
+      isOpen: c.isOpen,
+      troupeId: c.troupeId ? idOf(c.troupeId) : '',
+      mandatoryForTroupeIds: c.mandatoryForTroupeIds.map(idOf),
       capacity: c.capacity,
       price: c.price,
     });
@@ -119,11 +164,16 @@ export default function Courses() {
     setSaving(true);
     setError('');
     try {
+      const payload = {
+        ...form,
+        ageCategory: form.ageCategory || undefined,
+        troupeId: form.troupeId || undefined,
+      };
       if (editing) {
-        const updated = await updateCourse(editing._id, form);
+        const updated = await updateCourse(editing._id, payload);
         setCourses((prev) => prev.map((c) => (c._id === updated._id ? updated : c)));
       } else {
-        const created = await createCourse(form);
+        const created = await createCourse(payload);
         setCourses((prev) => [...prev, created]);
       }
       closeModal();
@@ -154,6 +204,13 @@ export default function Courses() {
           <Button size="sm" variant={view === 'list' ? 'primary' : 'secondary'} onClick={() => setView('list')}>
             {t('courses.listView')}
           </Button>
+          <span className="w-px bg-gray-200 mx-1" />
+          <Button size="sm" variant={colorBy === 'type' ? 'primary' : 'secondary'} onClick={() => setColorBy('type')}>
+            {t('courses.colorByType')}
+          </Button>
+          <Button size="sm" variant={colorBy === 'age' ? 'primary' : 'secondary'} onClick={() => setColorBy('age')}>
+            {t('courses.colorByAge')}
+          </Button>
         </div>
         {canWrite && (
           <Button size="sm" onClick={openAdd}>
@@ -164,13 +221,35 @@ export default function Courses() {
 
       {view === 'grid' && (
         <>
-          <select className="input max-w-xs" value={gridBranchId} onChange={(e) => setGridBranchId(e.target.value)}>
-            {branches.map((b) => (
-              <option key={b._id} value={b._id}>
-                {b.name}
-              </option>
-            ))}
-          </select>
+          <div className="flex flex-wrap gap-2">
+            <select className="input max-w-xs" value={gridBranchId} onChange={(e) => setGridBranchId(e.target.value)}>
+              {branches.map((b) => (
+                <option key={b._id} value={b._id}>
+                  {b.name}
+                </option>
+              ))}
+            </select>
+            <select className="input max-w-[180px]" value={gridTroupeId} onChange={(e) => setGridTroupeId(e.target.value)}>
+              <option value="">{t('courses.filterAllTroupes')}</option>
+              {troupes.map((tr) => (
+                <option key={tr._id} value={tr._id}>
+                  {tr.name}
+                </option>
+              ))}
+            </select>
+            <select
+              className="input max-w-[180px]"
+              value={gridAgeCategory}
+              onChange={(e) => setGridAgeCategory(e.target.value as AgeCategory | '')}
+            >
+              <option value="">{t('courses.filterAllAgeCategories')}</option>
+              {AGE_CATEGORIES.map((cat) => (
+                <option key={cat} value={cat}>
+                  {t(`courses.ageCategoryLabels.${cat}`)}
+                </option>
+              ))}
+            </select>
+          </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
             {DAY_NAMES.map((dayName, dayIndex) => {
@@ -184,18 +263,25 @@ export default function Courses() {
                   <div className="space-y-2">
                     {dayCourses.map((c) => {
                       const ct = courseTypes.find((x) => x._id === idOf(c.courseTypeId));
+                      const borderColor =
+                        colorBy === 'age'
+                          ? c.ageCategory
+                            ? AGE_CATEGORY_COLORS[c.ageCategory]
+                            : '#B26CA1'
+                          : ct?.colorTag || '#B26CA1';
                       return (
                         <div
                           key={c._id}
                           className="text-xs rounded-md p-2 border-r-4 bg-gray-50 cursor-pointer"
-                          style={{ borderRightColor: ct?.colorTag || '#B26CA1' }}
+                          style={{ borderRightColor: borderColor }}
                           onClick={() => canWrite && openEdit(c)}
                         >
                           <p className="font-semibold text-gray-800">
                             {c.startTime}–{c.endTime} · {nameOf(courseTypes, c.courseTypeId)}
+                            {!c.isOpen && ` · ${t('courses.closed')}`}
                           </p>
                           <p className="text-gray-500">
-                            {nameOf(teachers, c.teacherId)} · {c.roomName}
+                            {teacherNames(c.teacherIds)} · {c.roomName}
                             {c.capacity ? ` · ${c.enrolledCount ?? 0}/${c.capacity}` : ''}
                           </p>
                         </div>
@@ -237,6 +323,31 @@ export default function Courses() {
                 </option>
               ))}
             </select>
+            <select className="input max-w-[180px]" value={filters.troupeId} onChange={(e) => setFilters((f) => ({ ...f, troupeId: e.target.value }))}>
+              <option value="">{t('courses.filterAllTroupes')}</option>
+              {troupes.map((tr) => (
+                <option key={tr._id} value={tr._id}>
+                  {tr.name}
+                </option>
+              ))}
+            </select>
+            <select
+              className="input max-w-[180px]"
+              value={filters.ageCategory}
+              onChange={(e) => setFilters((f) => ({ ...f, ageCategory: e.target.value as AgeCategory | '' }))}
+            >
+              <option value="">{t('courses.filterAllAgeCategories')}</option>
+              {AGE_CATEGORIES.map((cat) => (
+                <option key={cat} value={cat}>
+                  {t(`courses.ageCategoryLabels.${cat}`)}
+                </option>
+              ))}
+            </select>
+            <select className="input max-w-[140px]" value={filters.isOpen} onChange={(e) => setFilters((f) => ({ ...f, isOpen: e.target.value }))}>
+              <option value="">{t('courses.filterAllOpenStatus')}</option>
+              <option value="true">{t('courses.open')}</option>
+              <option value="false">{t('courses.closed')}</option>
+            </select>
           </div>
 
           <div className="bg-white rounded-lg border border-gray-200 overflow-hidden overflow-x-auto">
@@ -245,11 +356,13 @@ export default function Courses() {
                 <tr>
                   <th className="px-3 py-2 text-right text-xs font-semibold text-gray-500 uppercase">{t('courses.branch')}</th>
                   <th className="px-3 py-2 text-right text-xs font-semibold text-gray-500 uppercase">{t('courses.courseType')}</th>
+                  <th className="px-3 py-2 text-right text-xs font-semibold text-gray-500 uppercase">{t('courses.ageCategory')}</th>
                   <th className="px-3 py-2 text-right text-xs font-semibold text-gray-500 uppercase">{t('courses.teacher')}</th>
                   <th className="px-3 py-2 text-right text-xs font-semibold text-gray-500 uppercase">{t('courses.dayOfWeek')}</th>
                   <th className="px-3 py-2 text-right text-xs font-semibold text-gray-500 uppercase">שעות</th>
                   <th className="px-3 py-2 text-right text-xs font-semibold text-gray-500 uppercase">{t('courses.room')}</th>
                   <th className="px-3 py-2 text-right text-xs font-semibold text-gray-500 uppercase">{t('courses.ageGroup')}</th>
+                  <th className="px-3 py-2 text-right text-xs font-semibold text-gray-500 uppercase">{t('courses.isOpen')}</th>
                   <th className="px-3 py-2 text-right text-xs font-semibold text-gray-500 uppercase">{t('courses.capacity')}</th>
                   {canWrite && <th className="px-3 py-2 text-right text-xs font-semibold text-gray-500 uppercase">{t('common.actions')}</th>}
                 </tr>
@@ -261,13 +374,21 @@ export default function Courses() {
                     <td className="px-3 py-2">
                       <Badge label={nameOf(courseTypes, c.courseTypeId)} color={courseTypes.find((x) => x._id === idOf(c.courseTypeId))?.colorTag} />
                     </td>
-                    <td className="px-3 py-2">{nameOf(teachers, c.teacherId)}</td>
+                    <td className="px-3 py-2">
+                      {c.ageCategory ? (
+                        <Badge label={t(`courses.ageCategoryLabels.${c.ageCategory}`)} color={AGE_CATEGORY_COLORS[c.ageCategory]} />
+                      ) : (
+                        '—'
+                      )}
+                    </td>
+                    <td className="px-3 py-2">{teacherNames(c.teacherIds)}</td>
                     <td className="px-3 py-2">{DAY_NAMES[c.dayOfWeek]}</td>
                     <td className="px-3 py-2">
                       {c.startTime}–{c.endTime}
                     </td>
                     <td className="px-3 py-2">{c.roomName}</td>
                     <td className="px-3 py-2">{c.ageGroupLevel || '—'}</td>
+                    <td className="px-3 py-2">{c.isOpen ? t('courses.open') : t('courses.closed')}</td>
                     <td className="px-3 py-2 font-medium">{c.capacity ? `${c.enrolledCount ?? 0}/${c.capacity}` : '—'}</td>
                     {canWrite && (
                       <td className="px-3 py-2 flex gap-2">
@@ -314,8 +435,12 @@ export default function Courses() {
             </div>
             <div>
               <label className="label">{t('courses.teacher')}</label>
-              <select className="input" value={form.teacherId} onChange={(e) => setForm((f) => ({ ...f, teacherId: e.target.value }))}>
-                <option value="">—</option>
+              <select
+                className="input"
+                multiple
+                value={form.teacherIds}
+                onChange={(e) => setForm((f) => ({ ...f, teacherIds: getMultiSelectValues(e) }))}
+              >
                 {teachers.map((te) => (
                   <option key={te._id} value={te._id}>
                     {te.name}
@@ -366,6 +491,58 @@ export default function Courses() {
             <div>
               <label className="label">{t('courses.ageGroup')}</label>
               <input className="input" value={form.ageGroupLevel} onChange={(e) => setForm((f) => ({ ...f, ageGroupLevel: e.target.value }))} />
+            </div>
+            <div>
+              <label className="label">{t('courses.ageCategory')}</label>
+              <select
+                className="input"
+                value={form.ageCategory}
+                onChange={(e) => setForm((f) => ({ ...f, ageCategory: e.target.value as AgeCategory | '' }))}
+              >
+                <option value="">—</option>
+                {AGE_CATEGORIES.map((cat) => (
+                  <option key={cat} value={cat}>
+                    {t(`courses.ageCategoryLabels.${cat}`)}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div className="flex items-center gap-2 pt-6">
+              <input
+                id="isOpen"
+                type="checkbox"
+                checked={form.isOpen}
+                onChange={(e) => setForm((f) => ({ ...f, isOpen: e.target.checked }))}
+              />
+              <label htmlFor="isOpen" className="label mb-0">
+                {t('courses.isOpen')}
+              </label>
+            </div>
+            <div>
+              <label className="label">{t('courses.troupe')}</label>
+              <select className="input" value={form.troupeId} onChange={(e) => setForm((f) => ({ ...f, troupeId: e.target.value }))}>
+                <option value="">—</option>
+                {troupes.map((tr) => (
+                  <option key={tr._id} value={tr._id}>
+                    {tr.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div>
+              <label className="label">{t('courses.mandatoryFor')}</label>
+              <select
+                className="input"
+                multiple
+                value={form.mandatoryForTroupeIds}
+                onChange={(e) => setForm((f) => ({ ...f, mandatoryForTroupeIds: getMultiSelectValues(e) }))}
+              >
+                {troupes.map((tr) => (
+                  <option key={tr._id} value={tr._id}>
+                    {tr.name}
+                  </option>
+                ))}
+              </select>
             </div>
             <div>
               <label className="label">{t('courses.capacity')}</label>

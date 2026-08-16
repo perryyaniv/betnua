@@ -9,6 +9,7 @@
     "seed": "ts-node src/seed.ts",
     "seed:demo": "ts-node scripts/seed-demo.ts",
     "seed:teachers": "ts-node scripts/seed-real-teachers.ts",
+    "import:schedule": "ts-node scripts/import-excel-schedule.ts",
     "demo:db": "node scripts/mem-mongo.js",
     "test": "jest"
   },
@@ -16,6 +17,7 @@
     "bcrypt": "^5.1.1",
     "cors": "^2.8.5",
     "dotenv": "^16.4.5",
+    "exceljs": "^4.4.0",
     "express": "^4.19.2",
     "jsonwebtoken": "^9.0.2",
     "mongoose": "^8.4.1",

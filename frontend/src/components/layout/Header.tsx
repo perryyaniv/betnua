@@ -13,6 +13,7 @@ function usePageTitle() {
   if (path.startsWith('/branches')) return t('nav.branches');
   if (path.startsWith('/teachers')) return t('nav.teachers');
   if (path.startsWith('/courses')) return t('nav.courses');
+  if (path.startsWith('/troupes')) return t('nav.troupes');
   if (path.startsWith('/events')) return t('nav.events');
   if (path.startsWith('/leads')) return t('nav.leads');
   if (path.startsWith('/students')) return t('nav.students');
@@ -37,6 +38,7 @@ export default function Header() {
     { to: '/branches', label: t('nav.branches'), show: true },
     { to: '/teachers', label: t('nav.teachers'), show: true },
     { to: '/courses', label: t('nav.courses'), show: true },
+    { to: '/troupes', label: t('nav.troupes'), show: true },
     { to: '/events', label: t('nav.events'), show: true },
     { to: '/leads', label: t('nav.leads'), show: true },
     { to: '/students', label: t('nav.students'), show: true },

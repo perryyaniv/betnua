@@ -1,5 +1,5 @@
 import client from './client';
-import { Course } from '../types';
+import { AgeCategory, Course } from '../types';
 
 export interface CourseFilters {
   branchId?: string;
@@ -8,6 +8,9 @@ export interface CourseFilters {
   seasonId?: string;
   dayOfWeek?: number;
   isActive?: boolean;
+  troupeId?: string;
+  isOpen?: boolean;
+  ageCategory?: AgeCategory;
 }
 
 export const getCourses = (filters: CourseFilters = {}) =>

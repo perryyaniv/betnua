@@ -32,7 +32,7 @@ router.get('/:id', asyncHandler<AuthRequest>(async (req, res) => {
 }));
 
 router.get('/:id/hours-report', asyncHandler<AuthRequest>(async (req, res) => {
-  const courses = await Course.find({ teacherId: req.params.id, isActive: true });
+  const courses = await Course.find({ teacherIds: req.params.id, isActive: true });
   const rows = computeWeeklyHours(courses);
   res.json(rows);
 }));
@@ -98,7 +98,7 @@ router.put('/:id', requireRole('admin', 'editor'), asyncHandler<AuthRequest>(asy
 }));
 
 router.delete('/:id', requireRole('admin'), asyncHandler<AuthRequest>(async (req, res) => {
-  const inUse = await Course.exists({ teacherId: req.params.id });
+  const inUse = await Course.exists({ teacherIds: req.params.id });
   if (inUse) {
     res.status(400).json({ message: 'בשימוש - לא ניתן למחוק' });
     return;

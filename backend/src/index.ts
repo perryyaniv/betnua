@@ -21,6 +21,7 @@ import leadRoutes from './routes/leads';
 import dropoutReasonRoutes from './routes/dropoutReasons';
 import studentRoutes from './routes/students';
 import reportRoutes from './routes/reports';
+import troupeRoutes from './routes/troupes';
 import { startAlertScheduler } from './services/alertScheduler';
 
 dotenv.config();
@@ -53,6 +54,7 @@ app.use('/api/leads', leadRoutes);
 app.use('/api/dropout-reasons', dropoutReasonRoutes);
 app.use('/api/students', studentRoutes);
 app.use('/api/reports', reportRoutes);
+app.use('/api/troupes', troupeRoutes);
 
 app.use((err: Error, _req: Request, res: Response, _next: NextFunction) => {
   console.error(err);

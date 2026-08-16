@@ -73,7 +73,7 @@ async function run() {
     await Course.create({
       branchId: def.branch._id,
       courseTypeId: byName(def.type)._id,
-      teacherId: def.teacher._id,
+      teacherIds: [def.teacher._id],
       seasonId: season._id,
       dayOfWeek: def.day,
       startTime: def.start,
