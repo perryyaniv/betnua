@@ -185,7 +185,7 @@ export default function Courses() {
       <>
           <div className="flex flex-nowrap gap-2">
             <div className="flex-1 min-w-0">
-              <label className="label text-center">{t('courses.branch')}</label>
+              <label className="label text-left">{t('courses.branch')}</label>
               <select className="input w-full px-1" value={gridBranchId} onChange={(e) => setGridBranchId(e.target.value)}>
                 {branches.map((b) => (
                   <option key={b._id} value={b._id}>
@@ -195,7 +195,7 @@ export default function Courses() {
               </select>
             </div>
             <div className="flex-1 min-w-0">
-              <label className="label text-center">{t('courses.troupe')}</label>
+              <label className="label text-left">{t('courses.troupe')}</label>
               <select className="input w-full px-1" value={gridTroupeId} onChange={(e) => setGridTroupeId(e.target.value)}>
                 <option value="">{t('courses.filterAllTroupes')}</option>
                 {troupes.map((tr) => (
@@ -206,7 +206,7 @@ export default function Courses() {
               </select>
             </div>
             <div className="flex-1 min-w-0">
-              <label className="label text-center">{t('courses.ageGroupFilterLabel')}</label>
+              <label className="label text-left">{t('courses.ageGroupFilterLabel')}</label>
               <select
                 className="input w-full px-1"
                 value={gridAgeCategory}
