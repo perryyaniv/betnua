@@ -3,7 +3,8 @@ import { useTranslation } from 'react-i18next';
 import { getTroupes, createTroupe, updateTroupe, deleteTroupe, addTroupeMember, updateTroupeMember, removeTroupeMember } from '../api/troupes';
 import { getBranches } from '../api/branches';
 import { getStudents } from '../api/students';
-import { Troupe, Branch, Student } from '../types';
+import { getCourses } from '../api/courses';
+import { Troupe, Branch, Student, Course, AgeCategory, AGE_CATEGORIES, AGE_CATEGORY_COLORS } from '../types';
 import { useAuth } from '../contexts/AuthContext';
 import { hasWriteAccess } from '../utils/roles';
 import Card from '../components/ui/Card';
@@ -19,7 +20,10 @@ export default function Troupes() {
   const [troupes, setTroupes] = useState<Troupe[]>([]);
   const [branches, setBranches] = useState<Branch[]>([]);
   const [students, setStudents] = useState<Student[]>([]);
+  const [courses, setCourses] = useState<Course[]>([]);
   const [loading, setLoading] = useState(true);
+  const [filterBranchId, setFilterBranchId] = useState('');
+  const [filterAgeCategory, setFilterAgeCategory] = useState<AgeCategory | ''>('');
   const [editing, setEditing] = useState<Troupe | null>(null);
   const [addModal, setAddModal] = useState(false);
   const [form, setForm] = useState({ name: '', branchId: '' });
@@ -27,10 +31,11 @@ export default function Troupes() {
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
-    Promise.all([getTroupes(), getBranches(), getStudents()]).then(([tr, b, s]) => {
+    Promise.all([getTroupes(), getBranches(), getStudents(), getCourses()]).then(([tr, b, s, c]) => {
       setTroupes(tr);
       setBranches(b);
       setStudents(s);
+      setCourses(c);
       setLoading(false);
     });
   }, []);
@@ -38,6 +43,19 @@ export default function Troupes() {
   const idOf = (v: string | { _id: string }) => (typeof v === 'string' ? v : v._id);
   const nameOf = <T extends { _id: string; name: string }>(list: T[], v: string | T) =>
     (typeof v === 'string' ? list.find((x) => x._id === v)?.name : v.name) ?? '—';
+
+  const troupeAgeCategory = (troupeId: string): AgeCategory | undefined =>
+    courses.find((c) => c.troupeId && idOf(c.troupeId) === troupeId && c.ageCategory)?.ageCategory;
+
+  const visibleTroupes = useMemo(
+    () =>
+      troupes.filter(
+        (tr) =>
+          (!filterBranchId || idOf(tr.branchId) === filterBranchId) &&
+          (!filterAgeCategory || troupeAgeCategory(tr._id) === filterAgeCategory)
+      ),
+    [troupes, courses, filterBranchId, filterAgeCategory]
+  );
 
   const closeModal = () => {
     setAddModal(false);
@@ -117,31 +135,63 @@ export default function Troupes() {
         </div>
       )}
 
+      <div className="flex flex-nowrap gap-2">
+        <div className="flex-1 min-w-0">
+          <label className="label text-right">{t('courses.branch')}</label>
+          <select className="input w-full px-1" value={filterBranchId} onChange={(e) => setFilterBranchId(e.target.value)}>
+            <option value="">{t('common.all')}</option>
+            {branches.map((b) => (
+              <option key={b._id} value={b._id}>
+                {b.name}
+              </option>
+            ))}
+          </select>
+        </div>
+        <div className="flex-1 min-w-0">
+          <label className="label text-right">{t('courses.ageGroupFilterLabel')}</label>
+          <select
+            className="input w-full px-1"
+            value={filterAgeCategory}
+            onChange={(e) => setFilterAgeCategory(e.target.value as AgeCategory | '')}
+          >
+            <option value="">{t('courses.filterAllAgeCategories')}</option>
+            {AGE_CATEGORIES.map((cat) => (
+              <option key={cat} value={cat}>
+                {t(`courses.ageCategoryLabels.${cat}`)}
+              </option>
+            ))}
+          </select>
+        </div>
+      </div>
+
       <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {troupes.map((tr) => (
-          <Card key={tr._id}>
-            <div className="flex items-start justify-between">
-              <div>
-                <h3 className="font-bold text-gray-800">{tr.name}</h3>
-                <p className="text-sm text-gray-500 mt-1">{nameOf(branches, tr.branchId)}</p>
-                <p className="text-xs text-gray-400 mt-1">
-                  {t('troupes.members')}: {tr.members.filter((m) => m.isActive).length}
-                </p>
-              </div>
-              {canWrite && (
-                <div className="flex flex-col gap-1 items-end">
-                  <Button size="sm" variant="ghost" onClick={() => openEdit(tr)}>
-                    {t('common.edit')}
-                  </Button>
-                  <button className="text-xs text-red-500" onClick={() => handleDelete(tr._id)}>
-                    {t('common.delete')}
-                  </button>
+        {visibleTroupes.map((tr) => {
+          const ageCategory = troupeAgeCategory(tr._id);
+          return (
+            <Card key={tr._id} style={ageCategory ? { borderRightColor: AGE_CATEGORY_COLORS[ageCategory] } : undefined}>
+              <div className="flex items-start justify-between">
+                <div>
+                  <h3 className="font-bold text-gray-800">{tr.name}</h3>
+                  <p className="text-sm text-gray-500 mt-1">{nameOf(branches, tr.branchId)}</p>
+                  <p className="text-xs text-gray-400 mt-1">
+                    {t('troupes.members')}: {tr.members.filter((m) => m.isActive).length}
+                  </p>
                 </div>
-              )}
-            </div>
-          </Card>
-        ))}
-        {troupes.length === 0 && <p className="text-sm text-gray-400">{t('common.noData')}</p>}
+                {canWrite && (
+                  <div className="flex flex-col gap-1 items-end">
+                    <Button size="sm" variant="ghost" onClick={() => openEdit(tr)}>
+                      {t('common.edit')}
+                    </Button>
+                    <button className="text-xs text-red-500" onClick={() => handleDelete(tr._id)}>
+                      {t('common.delete')}
+                    </button>
+                  </div>
+                )}
+              </div>
+            </Card>
+          );
+        })}
+        {visibleTroupes.length === 0 && <p className="text-sm text-gray-400">{t('common.noData')}</p>}
       </div>
 
       <Modal
