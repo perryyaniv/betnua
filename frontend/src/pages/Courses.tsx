@@ -13,9 +13,9 @@ import Button from '../components/ui/Button';
 import Modal from '../components/ui/Modal';
 import Spinner from '../components/ui/Spinner';
 
-function LockIcon({ label, className = 'w-3.5 h-3.5' }: { label: string; className?: string }) {
+function LockIcon({ label, color, className = 'w-3.5 h-3.5' }: { label: string; color: string; className?: string }) {
   return (
-    <svg className={`inline text-gray-500 ${className}`} fill="none" stroke="currentColor" viewBox="0 0 24 24" role="img" aria-label={label}>
+    <svg className={`inline ${className}`} style={{ color }} fill="none" stroke="currentColor" viewBox="0 0 24 24" role="img" aria-label={label}>
       <title>{label}</title>
       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
     </svg>
@@ -91,6 +91,7 @@ export default function Courses() {
 
   const activeSeason = seasons.find((s) => s.isActive) ?? seasons[0];
   const currentBranch = branches.find((b) => b._id === gridBranchId);
+  const branchTroupes = troupes.filter((tr) => idOf(tr.branchId) === gridBranchId);
 
   const gridCourses = useMemo(
     () =>
@@ -186,7 +187,14 @@ export default function Courses() {
           <div className="flex flex-nowrap gap-2">
             <div className="flex-1 min-w-0">
               <label className="label text-right">{t('courses.branch')}</label>
-              <select className="input w-full px-1" value={gridBranchId} onChange={(e) => setGridBranchId(e.target.value)}>
+              <select
+                className="input w-full px-1"
+                value={gridBranchId}
+                onChange={(e) => {
+                  setGridBranchId(e.target.value);
+                  setGridTroupeId('');
+                }}
+              >
                 {branches.map((b) => (
                   <option key={b._id} value={b._id}>
                     {b.name}
@@ -198,7 +206,7 @@ export default function Courses() {
               <label className="label text-right">{t('courses.troupe')}</label>
               <select className="input w-full px-1" value={gridTroupeId} onChange={(e) => setGridTroupeId(e.target.value)}>
                 <option value="">{t('courses.filterAllTroupes')}</option>
-                {troupes.map((tr) => (
+                {branchTroupes.map((tr) => (
                   <option key={tr._id} value={tr._id}>
                     {tr.name}
                   </option>
@@ -251,7 +259,7 @@ export default function Courses() {
                               {c.capacity ? ` · ${c.enrolledCount ?? 0}/${c.capacity}` : ''}
                             </p>
                           </div>
-                          {!c.isOpen && <LockIcon label={t('courses.closed')} className="w-6 h-6 flex-shrink-0" />}
+                          {!c.isOpen && <LockIcon label={t('courses.closed')} color={borderColor} className="w-6 h-6 flex-shrink-0" />}
                         </div>
                       );
                     })}
