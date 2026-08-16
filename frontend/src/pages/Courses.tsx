@@ -13,9 +13,9 @@ import Button from '../components/ui/Button';
 import Modal from '../components/ui/Modal';
 import Spinner from '../components/ui/Spinner';
 
-function LockIcon({ label }: { label: string }) {
+function LockIcon({ label, className = 'w-3.5 h-3.5' }: { label: string; className?: string }) {
   return (
-    <svg className="inline w-3.5 h-3.5 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" role="img" aria-label={label}>
+    <svg className={`inline text-red-500 ${className}`} fill="none" stroke="currentColor" viewBox="0 0 24 24" role="img" aria-label={label}>
       <title>{label}</title>
       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
     </svg>
@@ -237,21 +237,21 @@ export default function Courses() {
                       return (
                         <div
                           key={c._id}
-                          className="text-xs rounded-md p-2 border-2 border-r-8 bg-gray-50 cursor-pointer"
+                          className="text-xs rounded-md p-2 border-2 border-r-8 bg-gray-50 cursor-pointer flex items-center gap-2"
                           style={{ borderColor }}
                           onClick={() => canWrite && openEdit(c)}
                         >
-                          <p className="font-semibold text-gray-800 flex items-center gap-1">
-                            <span>
+                          <div className="flex-1 min-w-0">
+                            <p className="font-semibold text-gray-800">
                               {c.startTime}–{c.endTime} · {nameOf(courseTypes, c.courseTypeId)}
                               {c.ageGroupLevel && ` · ${c.ageGroupLevel}`}
-                            </span>
-                            {!c.isOpen && <LockIcon label={t('courses.closed')} />}
-                          </p>
-                          <p className="text-gray-500">
-                            {teacherNames(c.teacherIds)} · {c.roomName}
-                            {c.capacity ? ` · ${c.enrolledCount ?? 0}/${c.capacity}` : ''}
-                          </p>
+                            </p>
+                            <p className="text-gray-500">
+                              {teacherNames(c.teacherIds)} · {c.roomName}
+                              {c.capacity ? ` · ${c.enrolledCount ?? 0}/${c.capacity}` : ''}
+                            </p>
+                          </div>
+                          {!c.isOpen && <LockIcon label={t('courses.closed')} className="w-6 h-6 flex-shrink-0" />}
                         </div>
                       );
                     })}
