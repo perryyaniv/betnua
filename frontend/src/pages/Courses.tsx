@@ -211,17 +211,31 @@ export default function Courses() {
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center justify-between flex-wrap gap-2">
-        <div className="flex gap-2">
-          <Button size="sm" variant={view === 'grid' ? 'primary' : 'secondary'} onClick={() => setView('grid')}>
+      <div className="flex items-center flex-nowrap gap-1.5 sm:gap-2 sm:justify-between">
+        <div className="flex flex-1 sm:flex-none min-w-0 gap-1.5 sm:gap-2">
+          <Button
+            size="sm"
+            className="flex-1 sm:flex-none min-w-0 !px-1.5 sm:!px-3 !text-xs sm:!text-sm truncate"
+            variant={view === 'grid' ? 'primary' : 'secondary'}
+            onClick={() => setView('grid')}
+          >
             {t('courses.gridView')}
           </Button>
-          <Button size="sm" variant={view === 'list' ? 'primary' : 'secondary'} onClick={() => setView('list')}>
+          <Button
+            size="sm"
+            className="flex-1 sm:flex-none min-w-0 !px-1.5 sm:!px-3 !text-xs sm:!text-sm truncate"
+            variant={view === 'list' ? 'primary' : 'secondary'}
+            onClick={() => setView('list')}
+          >
             {t('courses.listView')}
           </Button>
         </div>
         {canWrite && (
-          <Button size="sm" onClick={openAdd}>
+          <Button
+            size="sm"
+            className="flex-1 sm:flex-none min-w-0 !px-1.5 sm:!px-3 !text-xs sm:!text-sm truncate"
+            onClick={openAdd}
+          >
             + {t('courses.addCourse')}
           </Button>
         )}
