@@ -14,22 +14,11 @@ import Modal from '../components/ui/Modal';
 import Spinner from '../components/ui/Spinner';
 import Badge from '../components/ui/Badge';
 
-function LockIcon({ isOpen, label }: { isOpen: boolean; label: string }) {
+function LockIcon({ label }: { label: string }) {
   return (
-    <svg
-      className={`inline w-3.5 h-3.5 ${isOpen ? 'text-gray-400' : 'text-red-500'}`}
-      fill="none"
-      stroke="currentColor"
-      viewBox="0 0 24 24"
-      role="img"
-      aria-label={label}
-    >
+    <svg className="inline w-3.5 h-3.5 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" role="img" aria-label={label}>
       <title>{label}</title>
-      {isOpen ? (
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 11V7a4 4 0 118 0m-4 8v2m-6-6h12a2 2 0 012 2v6a2 2 0 01-2 2H6a2 2 0 01-2-2v-6a2 2 0 012-2z" />
-      ) : (
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-      )}
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
     </svg>
   );
 }
@@ -300,7 +289,7 @@ export default function Courses() {
                             <span>
                               {c.startTime}–{c.endTime} · {nameOf(courseTypes, c.courseTypeId)}
                             </span>
-                            <LockIcon isOpen={c.isOpen} label={c.isOpen ? t('courses.open') : t('courses.closed')} />
+                            {!c.isOpen && <LockIcon label={t('courses.closed')} />}
                           </p>
                           <p className="text-gray-500">
                             {teacherNames(c.teacherIds)} · {c.roomName}
@@ -410,9 +399,7 @@ export default function Courses() {
                     </td>
                     <td className="px-3 py-2">{c.roomName}</td>
                     <td className="px-3 py-2">{c.ageGroupLevel || '—'}</td>
-                    <td className="px-3 py-2">
-                      <LockIcon isOpen={c.isOpen} label={c.isOpen ? t('courses.open') : t('courses.closed')} />
-                    </td>
+                    <td className="px-3 py-2">{!c.isOpen && <LockIcon label={t('courses.closed')} />}</td>
                     <td className="px-3 py-2 font-medium">{c.capacity ? `${c.enrolledCount ?? 0}/${c.capacity}` : '—'}</td>
                     {canWrite && (
                       <td className="px-3 py-2 flex gap-2">
