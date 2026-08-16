@@ -244,33 +244,42 @@ export default function Courses() {
       {view === 'grid' && (
         <>
           <div className="flex flex-nowrap gap-2">
-            <select className="input flex-1 min-w-0 px-1" value={gridBranchId} onChange={(e) => setGridBranchId(e.target.value)}>
-              {branches.map((b) => (
-                <option key={b._id} value={b._id}>
-                  {b.name}
-                </option>
-              ))}
-            </select>
-            <select className="input flex-1 min-w-0 px-1" value={gridTroupeId} onChange={(e) => setGridTroupeId(e.target.value)}>
-              <option value="">{t('courses.filterAllTroupes')}</option>
-              {troupes.map((tr) => (
-                <option key={tr._id} value={tr._id}>
-                  {tr.name}
-                </option>
-              ))}
-            </select>
-            <select
-              className="input flex-1 min-w-0 px-1"
-              value={gridAgeCategory}
-              onChange={(e) => setGridAgeCategory(e.target.value as AgeCategory | '')}
-            >
-              <option value="">{t('courses.filterAllAgeCategories')}</option>
-              {AGE_CATEGORIES.map((cat) => (
-                <option key={cat} value={cat}>
-                  {t(`courses.ageCategoryLabels.${cat}`)}
-                </option>
-              ))}
-            </select>
+            <div className="flex-1 min-w-0">
+              <label className="label">{t('courses.branch')}</label>
+              <select className="input w-full px-1" value={gridBranchId} onChange={(e) => setGridBranchId(e.target.value)}>
+                {branches.map((b) => (
+                  <option key={b._id} value={b._id}>
+                    {b.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div className="flex-1 min-w-0">
+              <label className="label">{t('courses.troupe')}</label>
+              <select className="input w-full px-1" value={gridTroupeId} onChange={(e) => setGridTroupeId(e.target.value)}>
+                <option value="">{t('courses.filterAllTroupes')}</option>
+                {troupes.map((tr) => (
+                  <option key={tr._id} value={tr._id}>
+                    {tr.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div className="flex-1 min-w-0">
+              <label className="label">{t('courses.ageGroupFilterLabel')}</label>
+              <select
+                className="input w-full px-1"
+                value={gridAgeCategory}
+                onChange={(e) => setGridAgeCategory(e.target.value as AgeCategory | '')}
+              >
+                <option value="">{t('courses.filterAllAgeCategories')}</option>
+                {AGE_CATEGORIES.map((cat) => (
+                  <option key={cat} value={cat}>
+                    {t(`courses.ageCategoryLabels.${cat}`)}
+                  </option>
+                ))}
+              </select>
+            </div>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">

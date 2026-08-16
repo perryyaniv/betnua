@@ -98,9 +98,10 @@
     "open": "פתוח",
     "closed": "סגור",
     "troupe": "להקה",
+    "ageGroupFilterLabel": "קבוצת גיל",
     "mandatoryFor": "חובה ללהקות",
-    "filterAllTroupes": "כל הלהקות",
-    "filterAllAgeCategories": "כל קבוצות הגיל",
+    "filterAllTroupes": "הכל",
+    "filterAllAgeCategories": "הכל",
     "filterAllOpenStatus": "הכל"
   },
   "troupes": {
