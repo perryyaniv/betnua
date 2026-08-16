@@ -274,6 +274,7 @@ export default function Courses() {
                           <p className="font-semibold text-gray-800 flex items-center gap-1">
                             <span>
                               {c.startTime}–{c.endTime} · {nameOf(courseTypes, c.courseTypeId)}
+                              {c.ageGroupLevel && ` · ${c.ageGroupLevel}`}
                             </span>
                             {!c.isOpen && <LockIcon label={t('courses.closed')} />}
                           </p>
