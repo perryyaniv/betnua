@@ -13,13 +13,6 @@ import Button from '../components/ui/Button';
 import Modal from '../components/ui/Modal';
 import Spinner from '../components/ui/Spinner';
 
-function hexToRgba(hex: string, alpha: number) {
-  const m = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
-  if (!m) return hex;
-  const [r, g, b] = [m[1], m[2], m[3]].map((x) => parseInt(x, 16));
-  return `rgba(${r}, ${g}, ${b}, ${alpha})`;
-}
-
 function LockIcon({ label }: { label: string }) {
   return (
     <svg className="inline w-3.5 h-3.5 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" role="img" aria-label={label}>
@@ -192,7 +185,7 @@ export default function Courses() {
       <>
           <div className="flex flex-nowrap gap-2">
             <div className="flex-1 min-w-0">
-              <label className="label">{t('courses.branch')}</label>
+              <label className="label text-center">{t('courses.branch')}</label>
               <select className="input w-full px-1" value={gridBranchId} onChange={(e) => setGridBranchId(e.target.value)}>
                 {branches.map((b) => (
                   <option key={b._id} value={b._id}>
@@ -202,7 +195,7 @@ export default function Courses() {
               </select>
             </div>
             <div className="flex-1 min-w-0">
-              <label className="label">{t('courses.troupe')}</label>
+              <label className="label text-center">{t('courses.troupe')}</label>
               <select className="input w-full px-1" value={gridTroupeId} onChange={(e) => setGridTroupeId(e.target.value)}>
                 <option value="">{t('courses.filterAllTroupes')}</option>
                 {troupes.map((tr) => (
@@ -213,7 +206,7 @@ export default function Courses() {
               </select>
             </div>
             <div className="flex-1 min-w-0">
-              <label className="label">{t('courses.ageGroupFilterLabel')}</label>
+              <label className="label text-center">{t('courses.ageGroupFilterLabel')}</label>
               <select
                 className="input w-full px-1"
                 value={gridAgeCategory}
@@ -244,8 +237,8 @@ export default function Courses() {
                       return (
                         <div
                           key={c._id}
-                          className="text-xs rounded-md p-2 border-2 border-r-8 cursor-pointer"
-                          style={{ borderColor, backgroundColor: hexToRgba(borderColor, 0.12) }}
+                          className="text-xs rounded-md p-2 border-2 border-r-8 bg-gray-50 cursor-pointer"
+                          style={{ borderColor }}
                           onClick={() => canWrite && openEdit(c)}
                         >
                           <p className="font-semibold text-gray-800 flex items-center gap-1">
