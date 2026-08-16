@@ -87,8 +87,6 @@
     "price": "מחיר",
     "addCourse": "הוספת חוג",
     "roomConflict": "התנגשות חדרים: יש חוג חופף באותו חדר וזמן",
-    "colorByType": "צבע לפי סוג",
-    "colorByAge": "צבע לפי גיל",
     "ageCategory": "קבוצת גיל (צבע)",
     "ageCategoryLabels": {
       "youngest": "גני ילדים",

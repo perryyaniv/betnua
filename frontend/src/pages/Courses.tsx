@@ -50,7 +50,6 @@ export default function Courses() {
   const canWrite = hasWriteAccess(user?.role);
 
   const [view, setView] = useState<'grid' | 'list'>('grid');
-  const [colorBy, setColorBy] = useState<'type' | 'age'>('type');
   const [courses, setCourses] = useState<Course[]>([]);
   const [branches, setBranches] = useState<Branch[]>([]);
   const [courseTypes, setCourseTypes] = useState<CourseType[]>([]);
@@ -213,13 +212,6 @@ export default function Courses() {
           <Button size="sm" variant={view === 'list' ? 'primary' : 'secondary'} onClick={() => setView('list')}>
             {t('courses.listView')}
           </Button>
-          <span className="w-px bg-gray-200 mx-1" />
-          <Button size="sm" variant={colorBy === 'type' ? 'primary' : 'secondary'} onClick={() => setColorBy('type')}>
-            {t('courses.colorByType')}
-          </Button>
-          <Button size="sm" variant={colorBy === 'age' ? 'primary' : 'secondary'} onClick={() => setColorBy('age')}>
-            {t('courses.colorByAge')}
-          </Button>
         </div>
         {canWrite && (
           <Button size="sm" onClick={openAdd}>
@@ -271,13 +263,7 @@ export default function Courses() {
                   <h3 className="text-sm font-bold text-primary mb-2">{dayName}</h3>
                   <div className="space-y-2">
                     {dayCourses.map((c) => {
-                      const ct = courseTypes.find((x) => x._id === idOf(c.courseTypeId));
-                      const borderColor =
-                        colorBy === 'age'
-                          ? c.ageCategory
-                            ? AGE_CATEGORY_COLORS[c.ageCategory]
-                            : '#B26CA1'
-                          : ct?.colorTag || '#B26CA1';
+                      const borderColor = c.ageCategory ? AGE_CATEGORY_COLORS[c.ageCategory] : '#B26CA1';
                       return (
                         <div
                           key={c._id}
