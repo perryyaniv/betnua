@@ -12,7 +12,6 @@ import { hasWriteAccess } from '../utils/roles';
 import Button from '../components/ui/Button';
 import Modal from '../components/ui/Modal';
 import Spinner from '../components/ui/Spinner';
-import Badge from '../components/ui/Badge';
 
 function hexToRgba(hex: string, alpha: number) {
   const m = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
@@ -56,7 +55,6 @@ export default function Courses() {
   const { user } = useAuth();
   const canWrite = hasWriteAccess(user?.role);
 
-  const [view, setView] = useState<'grid' | 'list'>('grid');
   const [courses, setCourses] = useState<Course[]>([]);
   const [branches, setBranches] = useState<Branch[]>([]);
   const [courseTypes, setCourseTypes] = useState<CourseType[]>([]);
@@ -67,21 +65,6 @@ export default function Courses() {
   const [gridBranchId, setGridBranchId] = useState('');
   const [gridTroupeId, setGridTroupeId] = useState('');
   const [gridAgeCategory, setGridAgeCategory] = useState<AgeCategory | ''>('');
-  const [filters, setFilters] = useState<{
-    branchId: string;
-    teacherId: string;
-    courseTypeId: string;
-    troupeId: string;
-    isOpen: string;
-    ageCategory: AgeCategory | '';
-  }>({
-    branchId: '',
-    teacherId: '',
-    courseTypeId: '',
-    troupeId: '',
-    isOpen: '',
-    ageCategory: '',
-  });
   const [editing, setEditing] = useState<Course | null>(null);
   const [addModal, setAddModal] = useState(false);
   const [form, setForm] = useState(emptyForm);
@@ -126,20 +109,6 @@ export default function Courses() {
           (!gridAgeCategory || c.ageCategory === gridAgeCategory)
       ),
     [courses, gridBranchId, gridTroupeId, gridAgeCategory]
-  );
-
-  const listCourses = useMemo(
-    () =>
-      courses.filter(
-        (c) =>
-          (!filters.branchId || idOf(c.branchId) === filters.branchId) &&
-          (!filters.teacherId || c.teacherIds.some((x) => idOf(x) === filters.teacherId)) &&
-          (!filters.courseTypeId || idOf(c.courseTypeId) === filters.courseTypeId) &&
-          matchesTroupe(c, filters.troupeId) &&
-          (!filters.isOpen || String(c.isOpen) === filters.isOpen) &&
-          (!filters.ageCategory || c.ageCategory === filters.ageCategory)
-      ),
-    [courses, filters]
   );
 
   const openAdd = () => {
@@ -203,6 +172,7 @@ export default function Courses() {
   const handleDelete = async (id: string) => {
     await deleteCourse(id);
     setCourses((prev) => prev.filter((c) => c._id !== id));
+    closeModal();
   };
 
   if (loading) return <Spinner />;
@@ -211,38 +181,15 @@ export default function Courses() {
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center flex-nowrap gap-1.5 sm:gap-2 sm:justify-between">
-        <div className="flex flex-1 sm:flex-none min-w-0 gap-1.5 sm:gap-2">
-          <Button
-            size="sm"
-            className="flex-1 sm:flex-none min-w-0 !px-1.5 sm:!px-3 !text-xs sm:!text-sm truncate"
-            variant={view === 'grid' ? 'primary' : 'secondary'}
-            onClick={() => setView('grid')}
-          >
-            {t('courses.gridView')}
-          </Button>
-          <Button
-            size="sm"
-            className="flex-1 sm:flex-none min-w-0 !px-1.5 sm:!px-3 !text-xs sm:!text-sm truncate"
-            variant={view === 'list' ? 'primary' : 'secondary'}
-            onClick={() => setView('list')}
-          >
-            {t('courses.listView')}
-          </Button>
-        </div>
-        {canWrite && (
-          <Button
-            size="sm"
-            className="flex-1 sm:flex-none min-w-0 !px-1.5 sm:!px-3 !text-xs sm:!text-sm truncate"
-            onClick={openAdd}
-          >
+      {canWrite && (
+        <div className="flex justify-end">
+          <Button size="sm" onClick={openAdd}>
             + {t('courses.addCourse')}
           </Button>
-        )}
-      </div>
+        </div>
+      )}
 
-      {view === 'grid' && (
-        <>
+      <>
           <div className="flex flex-nowrap gap-2">
             <div className="flex-1 min-w-0">
               <label className="label">{t('courses.branch')}</label>
@@ -322,119 +269,6 @@ export default function Courses() {
             {currentBranch && gridCourses.length === 0 && <p className="text-sm text-gray-400">{t('common.noData')}</p>}
           </div>
         </>
-      )}
-
-      {view === 'list' && (
-        <>
-          <div className="flex flex-wrap gap-2">
-            <select className="input max-w-[180px]" value={filters.branchId} onChange={(e) => setFilters((f) => ({ ...f, branchId: e.target.value }))}>
-              <option value="">{t('events.filterAllBranches')}</option>
-              {branches.map((b) => (
-                <option key={b._id} value={b._id}>
-                  {b.name}
-                </option>
-              ))}
-            </select>
-            <select className="input max-w-[180px]" value={filters.teacherId} onChange={(e) => setFilters((f) => ({ ...f, teacherId: e.target.value }))}>
-              <option value="">כל המורים</option>
-              {teachers.map((te) => (
-                <option key={te._id} value={te._id}>
-                  {te.name}
-                </option>
-              ))}
-            </select>
-            <select className="input max-w-[180px]" value={filters.courseTypeId} onChange={(e) => setFilters((f) => ({ ...f, courseTypeId: e.target.value }))}>
-              <option value="">כל הסוגים</option>
-              {courseTypes.map((ct) => (
-                <option key={ct._id} value={ct._id}>
-                  {ct.name}
-                </option>
-              ))}
-            </select>
-            <select className="input max-w-[180px]" value={filters.troupeId} onChange={(e) => setFilters((f) => ({ ...f, troupeId: e.target.value }))}>
-              <option value="">{t('courses.filterAllTroupes')}</option>
-              {troupes.map((tr) => (
-                <option key={tr._id} value={tr._id}>
-                  {tr.name}
-                </option>
-              ))}
-            </select>
-            <select
-              className="input max-w-[180px]"
-              value={filters.ageCategory}
-              onChange={(e) => setFilters((f) => ({ ...f, ageCategory: e.target.value as AgeCategory | '' }))}
-            >
-              <option value="">{t('courses.filterAllAgeCategories')}</option>
-              {AGE_CATEGORIES.map((cat) => (
-                <option key={cat} value={cat}>
-                  {t(`courses.ageCategoryLabels.${cat}`)}
-                </option>
-              ))}
-            </select>
-            <select className="input max-w-[140px]" value={filters.isOpen} onChange={(e) => setFilters((f) => ({ ...f, isOpen: e.target.value }))}>
-              <option value="">{t('courses.filterAllOpenStatus')}</option>
-              <option value="true">{t('courses.open')}</option>
-              <option value="false">{t('courses.closed')}</option>
-            </select>
-          </div>
-
-          <div className="bg-white rounded-lg border border-gray-200 overflow-hidden overflow-x-auto">
-            <table className="w-full text-sm min-w-[800px]">
-              <thead className="bg-gray-50 border-b border-gray-200">
-                <tr>
-                  <th className="px-3 py-2 text-right text-xs font-semibold text-gray-500 uppercase">{t('courses.branch')}</th>
-                  <th className="px-3 py-2 text-right text-xs font-semibold text-gray-500 uppercase">{t('courses.courseType')}</th>
-                  <th className="px-3 py-2 text-right text-xs font-semibold text-gray-500 uppercase">{t('courses.ageCategory')}</th>
-                  <th className="px-3 py-2 text-right text-xs font-semibold text-gray-500 uppercase">{t('courses.teacher')}</th>
-                  <th className="px-3 py-2 text-right text-xs font-semibold text-gray-500 uppercase">{t('courses.dayOfWeek')}</th>
-                  <th className="px-3 py-2 text-right text-xs font-semibold text-gray-500 uppercase">שעות</th>
-                  <th className="px-3 py-2 text-right text-xs font-semibold text-gray-500 uppercase">{t('courses.room')}</th>
-                  <th className="px-3 py-2 text-right text-xs font-semibold text-gray-500 uppercase">{t('courses.ageGroup')}</th>
-                  <th className="px-3 py-2 text-right text-xs font-semibold text-gray-500 uppercase">{t('courses.isOpen')}</th>
-                  <th className="px-3 py-2 text-right text-xs font-semibold text-gray-500 uppercase">{t('courses.capacity')}</th>
-                  {canWrite && <th className="px-3 py-2 text-right text-xs font-semibold text-gray-500 uppercase">{t('common.actions')}</th>}
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-100">
-                {listCourses.map((c) => (
-                  <tr key={c._id} className="hover:bg-gray-50">
-                    <td className="px-3 py-2">{nameOf(branches, c.branchId)}</td>
-                    <td className="px-3 py-2">
-                      <Badge label={nameOf(courseTypes, c.courseTypeId)} color={courseTypes.find((x) => x._id === idOf(c.courseTypeId))?.colorTag} />
-                    </td>
-                    <td className="px-3 py-2">
-                      {c.ageCategory ? (
-                        <Badge label={t(`courses.ageCategoryLabels.${c.ageCategory}`)} color={AGE_CATEGORY_COLORS[c.ageCategory]} />
-                      ) : (
-                        '—'
-                      )}
-                    </td>
-                    <td className="px-3 py-2">{teacherNames(c.teacherIds)}</td>
-                    <td className="px-3 py-2">{DAY_NAMES[c.dayOfWeek]}</td>
-                    <td className="px-3 py-2">
-                      {c.startTime}–{c.endTime}
-                    </td>
-                    <td className="px-3 py-2">{c.roomName}</td>
-                    <td className="px-3 py-2">{c.ageGroupLevel || '—'}</td>
-                    <td className="px-3 py-2">{!c.isOpen && <LockIcon label={t('courses.closed')} />}</td>
-                    <td className="px-3 py-2 font-medium">{c.capacity ? `${c.enrolledCount ?? 0}/${c.capacity}` : '—'}</td>
-                    {canWrite && (
-                      <td className="px-3 py-2 flex gap-2">
-                        <button className="text-xs text-primary" onClick={() => openEdit(c)}>
-                          {t('common.edit')}
-                        </button>
-                        <button className="text-xs text-red-500" onClick={() => handleDelete(c._id)}>
-                          {t('common.delete')}
-                        </button>
-                      </td>
-                    )}
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </>
-      )}
 
       <Modal open={addModal || !!editing} onClose={closeModal} title={editing ? t('common.edit') : t('courses.addCourse')} size="lg">
         <div className="space-y-4">
@@ -594,13 +428,22 @@ export default function Courses() {
 
           {error && <p className="text-sm text-red-600">{error}</p>}
 
-          <div className="flex gap-3 justify-end">
-            <Button variant="secondary" onClick={closeModal}>
-              {t('common.cancel')}
-            </Button>
-            <Button loading={saving} onClick={handleSave}>
-              {t('common.save')}
-            </Button>
+          <div className="flex items-center justify-between">
+            <div>
+              {editing && (
+                <button className="text-sm text-red-500" onClick={() => handleDelete(editing._id)}>
+                  {t('common.delete')}
+                </button>
+              )}
+            </div>
+            <div className="flex gap-3">
+              <Button variant="secondary" onClick={closeModal}>
+                {t('common.cancel')}
+              </Button>
+              <Button loading={saving} onClick={handleSave}>
+                {t('common.save')}
+              </Button>
+            </div>
           </div>
         </div>
       </Modal>
