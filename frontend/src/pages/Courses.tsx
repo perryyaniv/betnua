@@ -266,7 +266,10 @@ export default function Courses() {
                         >
                           <div className="flex-1 min-w-0">
                             <p className="font-semibold" style={{ color: textColor }}>
-                              {c.startTime}–{c.endTime} · {nameOf(courseTypes, c.courseTypeId)}
+                              <span dir="ltr">
+                                {c.startTime}-{c.endTime}
+                              </span>{' '}
+                              · {nameOf(courseTypes, c.courseTypeId)}
                               {c.ageGroupLevel && ` · ${c.ageGroupLevel}`}
                             </p>
                             <p style={{ color: secondaryTextColor }}>
