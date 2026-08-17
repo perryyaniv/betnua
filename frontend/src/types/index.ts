@@ -71,6 +71,20 @@ export const AGE_CATEGORY_COLORS: Record<AgeCategory, string> = {
   teens: '#455C75',
   adultWomen: '#C27BA0',
 };
+// Text/icon color for legible contrast against the full AGE_CATEGORY_COLORS background
+// (WCAG-checked: teens' dark navy needs light text, the other three need dark text).
+export const AGE_CATEGORY_TEXT_COLORS: Record<AgeCategory, string> = {
+  youngest: '#1f2937',
+  midElementary: '#1f2937',
+  teens: '#ffffff',
+  adultWomen: '#1f2937',
+};
+export const AGE_CATEGORY_SECONDARY_TEXT_COLORS: Record<AgeCategory, string> = {
+  youngest: '#4b5563',
+  midElementary: '#4b5563',
+  teens: '#d1d5db',
+  adultWomen: '#4b5563',
+};
 
 export interface TroupeMembership {
   _id: string;

@@ -6,7 +6,20 @@ import { getCourseTypes } from '../api/courseTypes';
 import { getTeachers } from '../api/teachers';
 import { getSeasons } from '../api/seasons';
 import { getTroupes } from '../api/troupes';
-import { Course, Branch, CourseType, Teacher, Season, Troupe, AgeCategory, AGE_CATEGORIES, AGE_CATEGORY_COLORS, DAY_NAMES } from '../types';
+import {
+  Course,
+  Branch,
+  CourseType,
+  Teacher,
+  Season,
+  Troupe,
+  AgeCategory,
+  AGE_CATEGORIES,
+  AGE_CATEGORY_COLORS,
+  AGE_CATEGORY_TEXT_COLORS,
+  AGE_CATEGORY_SECONDARY_TEXT_COLORS,
+  DAY_NAMES,
+} from '../types';
 import { useAuth } from '../contexts/AuthContext';
 import { hasWriteAccess } from '../utils/roles';
 import Button from '../components/ui/Button';
@@ -241,25 +254,27 @@ export default function Courses() {
                   <h3 className="text-sm font-bold text-primary mb-2">{dayName}</h3>
                   <div className="space-y-2">
                     {dayCourses.map((c) => {
-                      const borderColor = c.ageCategory ? AGE_CATEGORY_COLORS[c.ageCategory] : '#B26CA1';
+                      const bgColor = c.ageCategory ? AGE_CATEGORY_COLORS[c.ageCategory] : '#B26CA1';
+                      const textColor = c.ageCategory ? AGE_CATEGORY_TEXT_COLORS[c.ageCategory] : '#1f2937';
+                      const secondaryTextColor = c.ageCategory ? AGE_CATEGORY_SECONDARY_TEXT_COLORS[c.ageCategory] : '#4b5563';
                       return (
                         <div
                           key={c._id}
-                          className="text-xs rounded-md p-2 border-2 border-r-8 bg-gray-50 cursor-pointer flex items-center gap-2"
-                          style={{ borderColor }}
+                          className="text-xs rounded-md p-2 cursor-pointer flex items-center gap-2"
+                          style={{ backgroundColor: bgColor }}
                           onClick={() => canWrite && openEdit(c)}
                         >
                           <div className="flex-1 min-w-0">
-                            <p className="font-semibold text-gray-800">
+                            <p className="font-semibold" style={{ color: textColor }}>
                               {c.startTime}–{c.endTime} · {nameOf(courseTypes, c.courseTypeId)}
                               {c.ageGroupLevel && ` · ${c.ageGroupLevel}`}
                             </p>
-                            <p className="text-gray-500">
+                            <p style={{ color: secondaryTextColor }}>
                               {teacherNames(c.teacherIds)} · {c.roomName}
                               {c.capacity ? ` · ${c.enrolledCount ?? 0}/${c.capacity}` : ''}
                             </p>
                           </div>
-                          {!c.isOpen && <LockIcon label={t('courses.closed')} color={borderColor} className="w-6 h-6 flex-shrink-0" />}
+                          {!c.isOpen && <LockIcon label={t('courses.closed')} color={textColor} className="w-6 h-6 flex-shrink-0" />}
                         </div>
                       );
                     })}

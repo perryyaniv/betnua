@@ -4,7 +4,17 @@ import { getTroupes, createTroupe, updateTroupe, deleteTroupe, addTroupeMember, 
 import { getBranches } from '../api/branches';
 import { getStudents } from '../api/students';
 import { getCourses } from '../api/courses';
-import { Troupe, Branch, Student, Course, AgeCategory, AGE_CATEGORIES, AGE_CATEGORY_COLORS } from '../types';
+import {
+  Troupe,
+  Branch,
+  Student,
+  Course,
+  AgeCategory,
+  AGE_CATEGORIES,
+  AGE_CATEGORY_COLORS,
+  AGE_CATEGORY_TEXT_COLORS,
+  AGE_CATEGORY_SECONDARY_TEXT_COLORS,
+} from '../types';
 import { useAuth } from '../contexts/AuthContext';
 import { hasWriteAccess } from '../utils/roles';
 import Card from '../components/ui/Card';
@@ -167,22 +177,32 @@ export default function Troupes() {
       <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
         {visibleTroupes.map((tr) => {
           const ageCategory = troupeAgeCategory(tr._id);
+          const bgColor = ageCategory ? AGE_CATEGORY_COLORS[ageCategory] : undefined;
+          const textColor = ageCategory ? AGE_CATEGORY_TEXT_COLORS[ageCategory] : '#1f2937';
+          const secondaryTextColor = ageCategory ? AGE_CATEGORY_SECONDARY_TEXT_COLORS[ageCategory] : '#6b7280';
           return (
-            <Card key={tr._id} style={ageCategory ? { borderRightColor: AGE_CATEGORY_COLORS[ageCategory] } : undefined}>
+            <Card
+              key={tr._id}
+              style={bgColor ? { backgroundColor: bgColor, borderRightColor: bgColor } : undefined}
+            >
               <div className="flex items-start justify-between">
                 <div>
-                  <h3 className="font-bold text-gray-800">{tr.name}</h3>
-                  <p className="text-sm text-gray-500 mt-1">{nameOf(branches, tr.branchId)}</p>
-                  <p className="text-xs text-gray-400 mt-1">
+                  <h3 className="font-bold" style={{ color: textColor }}>
+                    {tr.name}
+                  </h3>
+                  <p className="text-sm mt-1" style={{ color: secondaryTextColor }}>
+                    {nameOf(branches, tr.branchId)}
+                  </p>
+                  <p className="text-xs mt-1" style={{ color: secondaryTextColor }}>
                     {t('troupes.members')}: {tr.members.filter((m) => m.isActive).length}
                   </p>
                 </div>
                 {canWrite && (
                   <div className="flex flex-col gap-1 items-end">
-                    <Button size="sm" variant="ghost" onClick={() => openEdit(tr)}>
+                    <Button size="sm" variant="ghost" style={{ color: textColor }} onClick={() => openEdit(tr)}>
                       {t('common.edit')}
                     </Button>
-                    <button className="text-xs text-red-500" onClick={() => handleDelete(tr._id)}>
+                    <button className="text-xs underline" style={{ color: textColor }} onClick={() => handleDelete(tr._id)}>
                       {t('common.delete')}
                     </button>
                   </div>
