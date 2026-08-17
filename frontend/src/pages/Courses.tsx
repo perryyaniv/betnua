@@ -291,7 +291,7 @@ export default function Courses() {
                               <LockIcon label={t('courses.closed')} color={textColor} className="w-6 h-6" />
                               {(c.troupeId || c.mandatoryForTroupeIds.length > 0) && (
                                 <span
-                                  className="text-[10px] font-semibold leading-tight"
+                                  className="text-xs font-semibold leading-tight"
                                   style={{ color: c.troupeId ? textColor : mandatoryColor }}
                                 >
                                   {c.troupeId
