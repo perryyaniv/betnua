@@ -89,10 +89,10 @@
     "roomConflict": "התנגשות חדרים: יש חוג חופף באותו חדר וזמן",
     "ageCategory": "קבוצת גיל (צבע)",
     "ageCategoryLabels": {
-      "youngest": "גני ילדים",
-      "midElementary": "יסודי (ב-ו)",
-      "teens": "נוער (ז-יב)",
-      "adultWomen": "בוגרות"
+      "youngest": "בית צעיר",
+      "midElementary": "בית מרכזי",
+      "teens": "בית בוגר",
+      "adultWomen": "בוגרים/ות"
     },
     "isOpen": "חוג פתוח",
     "open": "פתוח",
