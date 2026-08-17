@@ -278,7 +278,7 @@ export default function Courses() {
                             <p style={{ color: secondaryTextColor }}>
                               {teacherNames(c.teacherIds)} · {c.roomName}
                               {c.capacity ? ` · ${c.enrolledCount ?? 0}/${c.capacity}` : ''}
-                              {c.mandatoryForTroupeIds.length > 0 && (
+                              {c.isOpen && c.mandatoryForTroupeIds.length > 0 && (
                                 <span className="font-semibold" style={{ color: mandatoryColor }}>
                                   {' · '}
                                   {t('courses.mandatoryForPrefix')} {c.mandatoryForTroupeIds.map((id) => nameOf(troupes, id)).join(', ')}
@@ -286,7 +286,21 @@ export default function Courses() {
                               )}
                             </p>
                           </div>
-                          {!c.isOpen && <LockIcon label={t('courses.closed')} color={textColor} className="w-6 h-6 flex-shrink-0" />}
+                          {!c.isOpen && (
+                            <div className="flex flex-col items-center flex-shrink-0 text-center">
+                              <LockIcon label={t('courses.closed')} color={textColor} className="w-6 h-6" />
+                              {(c.troupeId || c.mandatoryForTroupeIds.length > 0) && (
+                                <span
+                                  className="text-[10px] font-semibold leading-tight"
+                                  style={{ color: c.troupeId ? textColor : mandatoryColor }}
+                                >
+                                  {c.troupeId
+                                    ? nameOf(troupes, c.troupeId)
+                                    : c.mandatoryForTroupeIds.map((id) => nameOf(troupes, id)).join(', ')}
+                                </span>
+                              )}
+                            </div>
+                          )}
                         </div>
                       );
                     })}
