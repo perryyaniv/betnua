@@ -257,6 +257,9 @@ export default function Courses() {
                       const bgColor = c.ageCategory ? AGE_CATEGORY_COLORS[c.ageCategory] : '#B26CA1';
                       const textColor = c.ageCategory ? AGE_CATEGORY_TEXT_COLORS[c.ageCategory] : '#1f2937';
                       const secondaryTextColor = c.ageCategory ? AGE_CATEGORY_SECONDARY_TEXT_COLORS[c.ageCategory] : '#4b5563';
+                      // A flat red fails contrast on the dark "teens" background and on the
+                      // already-pinkish "adultWomen" one, so pick per background darkness.
+                      const mandatoryColor = textColor === '#ffffff' ? '#fecaca' : '#7f1d1d';
                       return (
                         <div
                           key={c._id}
@@ -276,6 +279,11 @@ export default function Courses() {
                               {teacherNames(c.teacherIds)} · {c.roomName}
                               {c.capacity ? ` · ${c.enrolledCount ?? 0}/${c.capacity}` : ''}
                             </p>
+                            {c.mandatoryForTroupeIds.length > 0 && (
+                              <p className="font-semibold" style={{ color: mandatoryColor }}>
+                                {t('courses.mandatoryFor')}: {c.mandatoryForTroupeIds.map((id) => nameOf(troupes, id)).join(', ')}
+                              </p>
+                            )}
                           </div>
                           {!c.isOpen && <LockIcon label={t('courses.closed')} color={textColor} className="w-6 h-6 flex-shrink-0" />}
                         </div>
