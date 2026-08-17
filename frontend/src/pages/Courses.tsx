@@ -273,7 +273,7 @@ export default function Courses() {
                                 {c.startTime}-{c.endTime}
                               </span>{' '}
                               · {nameOf(courseTypes, c.courseTypeId)}
-                              {c.ageGroupLevel && ` · ${c.ageGroupLevel}`}
+                              {c.ageGroupLevel && !(!c.isOpen && c.troupeId) && ` · ${c.ageGroupLevel}`}
                             </p>
                             <p style={{ color: secondaryTextColor }}>
                               {teacherNames(c.teacherIds)} · {c.roomName}
