@@ -103,7 +103,8 @@
     "mandatoryForPrefix": "חובה:",
     "filterAllTroupes": "הכל",
     "filterAllAgeCategories": "הכל",
-    "filterAllOpenStatus": "הכל"
+    "filterAllOpenStatus": "הכל",
+    "searchPlaceholder": "חיפוש לפי סוג חוג, מורה, חדר, קבוצת גיל או להקה"
   },
   "troupes": {
     "title": "להקות",

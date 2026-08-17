@@ -71,6 +71,7 @@ export default function Courses() {
   const [gridBranchId, setGridBranchId] = useState('');
   const [gridTroupeId, setGridTroupeId] = useState('');
   const [gridAgeCategory, setGridAgeCategory] = useState<AgeCategory | ''>('');
+  const [searchQuery, setSearchQuery] = useState('');
   const [editing, setEditing] = useState<Course | null>(null);
   const [addModal, setAddModal] = useState(false);
   const [form, setForm] = useState(emptyForm);
@@ -101,6 +102,21 @@ export default function Courses() {
     !troupeId ||
     (c.troupeId ? idOf(c.troupeId) === troupeId : false) ||
     c.mandatoryForTroupeIds.some((x) => idOf(x) === troupeId);
+  const matchesSearch = (c: Course, query: string) => {
+    const q = query.trim().toLowerCase();
+    if (!q) return true;
+    const haystack = [
+      nameOf(courseTypes, c.courseTypeId),
+      teacherNames(c.teacherIds),
+      c.roomName,
+      c.ageGroupLevel,
+      c.troupeId ? nameOf(troupes, c.troupeId) : '',
+      c.mandatoryForTroupeIds.map((id) => nameOf(troupes, id)).join(' '),
+    ]
+      .join(' ')
+      .toLowerCase();
+    return haystack.includes(q);
+  };
 
   const activeSeason = seasons.find((s) => s.isActive) ?? seasons[0];
   const currentBranch = branches.find((b) => b._id === gridBranchId);
@@ -113,9 +129,10 @@ export default function Courses() {
           idOf(c.branchId) === gridBranchId &&
           c.isActive &&
           matchesTroupe(c, gridTroupeId) &&
-          (!gridAgeCategory || c.ageCategory === gridAgeCategory)
+          (!gridAgeCategory || c.ageCategory === gridAgeCategory) &&
+          matchesSearch(c, searchQuery)
       ),
-    [courses, gridBranchId, gridTroupeId, gridAgeCategory]
+    [courses, gridBranchId, gridTroupeId, gridAgeCategory, searchQuery]
   );
 
   const openAdd = () => {
@@ -197,6 +214,17 @@ export default function Courses() {
       )}
 
       <>
+          <div>
+            <label className="label text-right">{t('common.search')}</label>
+            <input
+              type="text"
+              className="input w-full"
+              placeholder={t('courses.searchPlaceholder')}
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+            />
+          </div>
+
           <div className="flex flex-nowrap gap-2">
             <div className="flex-1 min-w-0">
               <label className="label text-right">{t('courses.branch')}</label>
