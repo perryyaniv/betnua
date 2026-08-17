@@ -5,7 +5,7 @@
 /* ===== Themes ===== */
 /* "brand" (בתנועה) is the default — defined on :root so it applies with no data-theme attribute at all. */
 :root {
-  --font-scale: 1;
+  --font-scale: 1.375;
 
   --color-primary: #9c5389;
   --color-primary-dark: #7a3d6b;

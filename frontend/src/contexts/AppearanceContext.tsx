@@ -17,7 +17,7 @@ export const THEMES: ThemeOption[] = [
 ];
 
 export const FONT_SCALES = [0.875, 1, 1.125, 1.25, 1.375];
-export const DEFAULT_FONT_SCALE_INDEX = 1;
+export const DEFAULT_FONT_SCALE_INDEX = FONT_SCALES.length - 1;
 
 const THEME_KEY = 'betnua-theme';
 const FONT_KEY = 'betnua-font-scale-index';
@@ -40,7 +40,9 @@ function readInitialTheme(): ThemeName {
 }
 
 function readInitialFontScaleIndex(): number {
-  const saved = Number(localStorage.getItem(FONT_KEY));
+  const raw = localStorage.getItem(FONT_KEY);
+  if (raw === null) return DEFAULT_FONT_SCALE_INDEX;
+  const saved = Number(raw);
   return Number.isInteger(saved) && saved >= 0 && saved < FONT_SCALES.length ? saved : DEFAULT_FONT_SCALE_INDEX;
 }
 

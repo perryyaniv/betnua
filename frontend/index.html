@@ -22,7 +22,8 @@
           var theme = localStorage.getItem('betnua-theme');
           if (theme) document.documentElement.setAttribute('data-theme', theme);
           var scales = [0.875, 1, 1.125, 1.25, 1.375];
-          var idx = Number(localStorage.getItem('betnua-font-scale-index'));
+          var saved = localStorage.getItem('betnua-font-scale-index');
+          var idx = saved === null ? scales.length - 1 : Number(saved);
           if (Number.isInteger(idx) && idx >= 0 && idx < scales.length) {
             document.documentElement.style.setProperty('--font-scale', String(scales[idx]));
           }
