@@ -278,12 +278,13 @@ export default function Courses() {
                             <p style={{ color: secondaryTextColor }}>
                               {teacherNames(c.teacherIds)} · {c.roomName}
                               {c.capacity ? ` · ${c.enrolledCount ?? 0}/${c.capacity}` : ''}
+                              {c.mandatoryForTroupeIds.length > 0 && (
+                                <span className="font-semibold" style={{ color: mandatoryColor }}>
+                                  {' · '}
+                                  {t('courses.mandatoryForPrefix')} {c.mandatoryForTroupeIds.map((id) => nameOf(troupes, id)).join(', ')}
+                                </span>
+                              )}
                             </p>
-                            {c.mandatoryForTroupeIds.length > 0 && (
-                              <p className="font-semibold" style={{ color: mandatoryColor }}>
-                                {t('courses.mandatoryFor')}: {c.mandatoryForTroupeIds.map((id) => nameOf(troupes, id)).join(', ')}
-                              </p>
-                            )}
                           </div>
                           {!c.isOpen && <LockIcon label={t('courses.closed')} color={textColor} className="w-6 h-6 flex-shrink-0" />}
                         </div>
