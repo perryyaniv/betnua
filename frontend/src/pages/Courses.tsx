@@ -314,7 +314,10 @@ export default function Courses() {
                               · {nameOf(courseTypes, c.courseTypeId)}
                               {c.notes && ` · ${c.notes}`}
                               {c.ageGroupLevel && !(!c.isOpen && c.troupeId) && ` · ${c.ageGroupLevel}`}
-                              {c.isOpen && c.troupeId && ` · ${nameOf(troupes, c.troupeId)}`}
+                              {c.isOpen &&
+                                c.troupeId &&
+                                !c.mandatoryForTroupeIds.some((id) => idOf(id) === idOf(c.troupeId as string | Troupe)) &&
+                                ` · ${nameOf(troupes, c.troupeId)}`}
                             </p>
                             <p style={{ color: secondaryTextColor }}>
                               {!gridBranchId && `${nameOf(branches, c.branchId)} · `}
