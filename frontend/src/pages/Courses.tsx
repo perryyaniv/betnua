@@ -111,6 +111,7 @@ export default function Courses() {
       teacherNames(c.teacherIds),
       c.roomName,
       c.ageGroupLevel,
+      c.ageCategory ? t(`courses.ageCategoryLabels.${c.ageCategory}`) : '',
       c.troupeId ? nameOf(troupes, c.troupeId) : '',
       c.mandatoryForTroupeIds.map((id) => nameOf(troupes, id)).join(' '),
     ]
