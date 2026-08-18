@@ -54,6 +54,9 @@ const emptyForm = {
   price: undefined as number | undefined,
 };
 
+const TROUPE_FILTER_ANY = '__any_troupe__';
+const TROUPE_FILTER_NONE = '__no_troupe__';
+
 const getMultiSelectValues = (e: ChangeEvent<HTMLSelectElement>) =>
   Array.from(e.target.selectedOptions).map((o) => o.value);
 
@@ -99,10 +102,12 @@ export default function Courses() {
     (typeof v === 'string' ? list.find((x) => x._id === v)?.name : v.name) ?? '—';
   const teacherNames = (ids: (string | Teacher)[]) =>
     ids.length ? ids.map((id) => nameOf(teachers, id)).join(', ') : '—';
-  const matchesTroupe = (c: Course, troupeId: string) =>
-    !troupeId ||
-    (c.troupeId ? idOf(c.troupeId) === troupeId : false) ||
-    c.mandatoryForTroupeIds.some((x) => idOf(x) === troupeId);
+  const matchesTroupe = (c: Course, troupeId: string) => {
+    if (!troupeId) return true;
+    if (troupeId === TROUPE_FILTER_ANY) return !!c.troupeId;
+    if (troupeId === TROUPE_FILTER_NONE) return !c.troupeId;
+    return (c.troupeId ? idOf(c.troupeId) === troupeId : false) || c.mandatoryForTroupeIds.some((x) => idOf(x) === troupeId);
+  };
   const matchesSearch = (c: Course, query: string) => {
     const q = query.trim().toLowerCase();
     if (!q) return true;
@@ -251,6 +256,8 @@ export default function Courses() {
               <label className="label text-right">{t('courses.troupe')}</label>
               <select className="input w-full px-1" value={gridTroupeId} onChange={(e) => setGridTroupeId(e.target.value)}>
                 <option value="">{t('courses.filterAllTroupes')}</option>
+                <option value={TROUPE_FILTER_ANY}>{t('courses.filterAnyTroupe')}</option>
+                <option value={TROUPE_FILTER_NONE}>{t('courses.filterNoTroupe')}</option>
                 {branchTroupes.map((tr) => (
                   <option key={tr._id} value={tr._id}>
                     {tr.name}

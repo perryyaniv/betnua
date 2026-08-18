@@ -103,6 +103,8 @@
     "mandatoryFor": "חובה ללהקות",
     "mandatoryForPrefix": "חובה:",
     "filterAllTroupes": "הכל",
+    "filterAnyTroupe": "כל הלהקות",
+    "filterNoTroupe": "ללא להקות",
     "filterAllAgeCategories": "הכל",
     "filterAllOpenStatus": "הכל",
     "searchPlaceholder": "חיפוש לפי סוג חוג, מורה, חדר, קבוצת גיל או להקה"
