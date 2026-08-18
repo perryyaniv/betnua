@@ -121,13 +121,13 @@ export default function Courses() {
 
   const activeSeason = seasons.find((s) => s.isActive) ?? seasons[0];
   const currentBranch = branches.find((b) => b._id === gridBranchId);
-  const branchTroupes = troupes.filter((tr) => idOf(tr.branchId) === gridBranchId);
+  const branchTroupes = troupes.filter((tr) => !gridBranchId || idOf(tr.branchId) === gridBranchId);
 
   const gridCourses = useMemo(
     () =>
       courses.filter(
         (c) =>
-          idOf(c.branchId) === gridBranchId &&
+          (!gridBranchId || idOf(c.branchId) === gridBranchId) &&
           c.isActive &&
           matchesTroupe(c, gridTroupeId) &&
           (!gridAgeCategory || c.ageCategory === gridAgeCategory) &&
@@ -238,6 +238,7 @@ export default function Courses() {
                   setGridTroupeId('');
                 }}
               >
+                <option value="">{t('common.all')}</option>
                 {branches.map((b) => (
                   <option key={b._id} value={b._id}>
                     {b.name}
@@ -307,6 +308,7 @@ export default function Courses() {
                               {c.ageGroupLevel && !(!c.isOpen && c.troupeId) && ` · ${c.ageGroupLevel}`}
                             </p>
                             <p style={{ color: secondaryTextColor }}>
+                              {!gridBranchId && `${nameOf(branches, c.branchId)} · `}
                               {teacherNames(c.teacherIds)} · {c.roomName}
                               {c.capacity ? ` · ${c.enrolledCount ?? 0}/${c.capacity}` : ''}
                               {c.isOpen && c.mandatoryForTroupeIds.length > 0 && (
@@ -339,7 +341,9 @@ export default function Courses() {
                 </div>
               );
             })}
-            {currentBranch && gridCourses.length === 0 && <p className="text-sm text-gray-400">{t('common.noData')}</p>}
+            {(!gridBranchId || currentBranch) && gridCourses.length === 0 && (
+              <p className="text-sm text-gray-400">{t('common.noData')}</p>
+            )}
           </div>
         </>
 
