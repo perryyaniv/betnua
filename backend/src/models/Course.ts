@@ -14,6 +14,7 @@ export interface ICourse extends Document {
   roomName: string;
   ageGroupLevel: string;
   ageCategory?: AgeCategory;
+  notes: string;
   isOpen: boolean;
   troupeId?: mongoose.Types.ObjectId;
   mandatoryForTroupeIds: mongoose.Types.ObjectId[];
@@ -34,6 +35,7 @@ const CourseSchema = new Schema<ICourse>(
     roomName: { type: String, required: true, trim: true },
     ageGroupLevel: { type: String, default: '', trim: true },
     ageCategory: { type: String, enum: AGE_CATEGORIES },
+    notes: { type: String, default: '', trim: true },
     isOpen: { type: Boolean, default: true },
     troupeId: { type: Schema.Types.ObjectId, ref: 'Troupe' },
     mandatoryForTroupeIds: [{ type: Schema.Types.ObjectId, ref: 'Troupe' }],

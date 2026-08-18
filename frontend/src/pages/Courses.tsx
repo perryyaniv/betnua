@@ -46,6 +46,7 @@ const emptyForm = {
   roomName: '',
   ageGroupLevel: '',
   ageCategory: '' as AgeCategory | '',
+  notes: '',
   isOpen: true,
   troupeId: '',
   mandatoryForTroupeIds: [] as string[],
@@ -154,6 +155,7 @@ export default function Courses() {
       roomName: c.roomName,
       ageGroupLevel: c.ageGroupLevel,
       ageCategory: c.ageCategory ?? '',
+      notes: c.notes,
       isOpen: c.isOpen,
       troupeId: c.troupeId ? idOf(c.troupeId) : '',
       mandatoryForTroupeIds: c.mandatoryForTroupeIds.map(idOf),
@@ -301,6 +303,7 @@ export default function Courses() {
                                 {c.startTime}-{c.endTime}
                               </span>{' '}
                               · {nameOf(courseTypes, c.courseTypeId)}
+                              {c.notes && ` · ${c.notes}`}
                               {c.ageGroupLevel && !(!c.isOpen && c.troupeId) && ` · ${c.ageGroupLevel}`}
                             </p>
                             <p style={{ color: secondaryTextColor }}>
@@ -423,6 +426,10 @@ export default function Courses() {
             <div>
               <label className="label">{t('courses.ageGroup')}</label>
               <input className="input" value={form.ageGroupLevel} onChange={(e) => setForm((f) => ({ ...f, ageGroupLevel: e.target.value }))} />
+            </div>
+            <div>
+              <label className="label">{t('courses.notes')}</label>
+              <input className="input" value={form.notes} onChange={(e) => setForm((f) => ({ ...f, notes: e.target.value }))} />
             </div>
             <div>
               <label className="label">{t('courses.ageCategory')}</label>

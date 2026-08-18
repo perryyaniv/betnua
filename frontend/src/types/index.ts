@@ -114,6 +114,7 @@ export interface Course {
   roomName: string;
   ageGroupLevel: string;
   ageCategory?: AgeCategory;
+  notes: string;
   isOpen: boolean;
   troupeId?: string | Troupe;
   mandatoryForTroupeIds: string[] | Troupe[];
