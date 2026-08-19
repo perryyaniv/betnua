@@ -102,6 +102,12 @@ export interface Troupe {
   isActive: boolean;
 }
 
+export interface WhatsappLink {
+  _id?: string; // absent for a link not yet saved (assigned by the server on create)
+  name: string;
+  url: string;
+}
+
 export interface Course {
   _id: string;
   branchId: string | Branch;
@@ -118,6 +124,7 @@ export interface Course {
   isOpen: boolean;
   troupeId?: string | Troupe;
   mandatoryForTroupeIds: string[] | Troupe[];
+  whatsappLinks: WhatsappLink[];
   capacity?: number;
   price?: number;
   isActive: boolean;

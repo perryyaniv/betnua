@@ -35,6 +35,15 @@ function LockIcon({ label, color, className = 'w-3.5 h-3.5' }: { label: string; 
   );
 }
 
+function WhatsappIcon({ className = 'w-4 h-4' }: { className?: string }) {
+  return (
+    <svg className={className} viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+      <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.626.712.226 1.36.194 1.872.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z" />
+      <path d="M12.004 2.003c-5.514 0-9.997 4.483-9.997 9.997 0 1.762.462 3.484 1.34 4.997L2.003 22l5.135-1.317a9.94 9.94 0 004.866 1.24h.004c5.514 0 9.997-4.483 9.997-9.997 0-2.671-1.04-5.183-2.928-7.071a9.93 9.93 0 00-7.073-2.925zm0 18.187h-.003a8.2 8.2 0 01-4.181-1.145l-.3-.178-3.049.782.813-2.973-.195-.305a8.19 8.19 0 01-1.257-4.371c0-4.529 3.685-8.213 8.216-8.213a8.16 8.16 0 015.813 2.408 8.16 8.16 0 012.403 5.812c0 4.53-3.685 8.185-8.26 8.185z" />
+    </svg>
+  );
+}
+
 const emptyForm = {
   branchId: '',
   courseTypeId: '',
@@ -50,6 +59,7 @@ const emptyForm = {
   isOpen: true,
   troupeId: '',
   mandatoryForTroupeIds: [] as string[],
+  whatsappLinks: [] as { name: string; url: string }[],
   capacity: undefined as number | undefined,
   price: undefined as number | undefined,
 };
@@ -76,6 +86,7 @@ export default function Courses() {
   const [gridTroupeId, setGridTroupeId] = useState('');
   const [gridAgeCategory, setGridAgeCategory] = useState<AgeCategory | ''>('');
   const [searchQuery, setSearchQuery] = useState('');
+  const [openWhatsappId, setOpenWhatsappId] = useState<string | null>(null);
   const [editing, setEditing] = useState<Course | null>(null);
   const [addModal, setAddModal] = useState(false);
   const [form, setForm] = useState(emptyForm);
@@ -119,6 +130,7 @@ export default function Courses() {
       c.ageCategory ? t(`courses.ageCategoryLabels.${c.ageCategory}`) : '',
       c.troupeId ? nameOf(troupes, c.troupeId) : '',
       c.mandatoryForTroupeIds.map((id) => nameOf(troupes, id)).join(' '),
+      c.whatsappLinks.map((l) => l.name).join(' '),
     ]
       .join(' ')
       .toLowerCase();
@@ -165,6 +177,7 @@ export default function Courses() {
       isOpen: c.isOpen,
       troupeId: c.troupeId ? idOf(c.troupeId) : '',
       mandatoryForTroupeIds: c.mandatoryForTroupeIds.map(idOf),
+      whatsappLinks: c.whatsappLinks.map((l) => ({ name: l.name, url: l.url })),
       capacity: c.capacity,
       price: c.price,
     });
@@ -346,6 +359,37 @@ export default function Courses() {
                               )}
                             </div>
                           )}
+                          {c.whatsappLinks.length > 0 && (
+                            <div className="relative flex-shrink-0" onClick={(e) => e.stopPropagation()}>
+                              <button
+                                type="button"
+                                className="w-6 h-6 rounded-full bg-[#25D366] text-white flex items-center justify-center"
+                                onClick={() => setOpenWhatsappId(openWhatsappId === c._id ? null : c._id)}
+                                aria-label={t('courses.whatsappLinks')}
+                              >
+                                <WhatsappIcon className="w-3.5 h-3.5" />
+                              </button>
+                              {openWhatsappId === c._id && (
+                                <>
+                                  <div className="fixed inset-0 z-40" onClick={() => setOpenWhatsappId(null)} />
+                                  <div className="absolute left-0 top-full mt-1 z-50 bg-white border border-gray-200 rounded-lg shadow-xl py-1 min-w-[140px] text-right">
+                                    {c.whatsappLinks.map((link) => (
+                                      <a
+                                        key={link._id}
+                                        href={link.url}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="block px-3 py-1.5 text-sm text-gray-700 hover:bg-gray-50 whitespace-nowrap"
+                                        onClick={() => setOpenWhatsappId(null)}
+                                      >
+                                        {link.name}
+                                      </a>
+                                    ))}
+                                  </div>
+                                </>
+                              )}
+                            </div>
+                          )}
                         </div>
                       );
                     })}
@@ -516,6 +560,52 @@ export default function Courses() {
                 value={form.price ?? ''}
                 onChange={(e) => setForm((f) => ({ ...f, price: e.target.value ? Number(e.target.value) : undefined }))}
               />
+            </div>
+          </div>
+
+          <div>
+            <label className="label">{t('courses.whatsappLinks')}</label>
+            <div className="space-y-2">
+              {form.whatsappLinks.map((link, i) => (
+                <div key={i} className="flex gap-2">
+                  <input
+                    className="input flex-1"
+                    placeholder={t('courses.whatsappLinkName')}
+                    value={link.name}
+                    onChange={(e) =>
+                      setForm((f) => ({
+                        ...f,
+                        whatsappLinks: f.whatsappLinks.map((l, j) => (j === i ? { ...l, name: e.target.value } : l)),
+                      }))
+                    }
+                  />
+                  <input
+                    className="input flex-1"
+                    placeholder={t('courses.whatsappLinkUrl')}
+                    value={link.url}
+                    onChange={(e) =>
+                      setForm((f) => ({
+                        ...f,
+                        whatsappLinks: f.whatsappLinks.map((l, j) => (j === i ? { ...l, url: e.target.value } : l)),
+                      }))
+                    }
+                  />
+                  <button
+                    type="button"
+                    className="text-red-500 text-sm px-2 flex-shrink-0"
+                    onClick={() => setForm((f) => ({ ...f, whatsappLinks: f.whatsappLinks.filter((_, j) => j !== i) }))}
+                  >
+                    {t('common.delete')}
+                  </button>
+                </div>
+              ))}
+              <Button
+                size="sm"
+                variant="secondary"
+                onClick={() => setForm((f) => ({ ...f, whatsappLinks: [...f.whatsappLinks, { name: '', url: '' }] }))}
+              >
+                + {t('courses.addWhatsappLink')}
+              </Button>
             </div>
           </div>
 
