@@ -153,6 +153,8 @@
     "filterAllBranches": "כל הסניפים",
     "filterAllTypes": "כל הסוגים",
     "filterAllStatuses": "כל הסטטוסים",
+    "cardView": "תצוגת כרטיסים",
+    "tableView": "תצוגת טבלה",
     "deleteConfirm": "האם אתה בטוח שברצונך למחוק אירוע זה?"
   },
   "eventTypes": {
