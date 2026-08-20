@@ -383,10 +383,10 @@ export default function Courses() {
                           </div>
                           {!c.isOpen && (
                             <div className="flex flex-col items-center flex-shrink-0 text-center">
-                              <LockIcon label={t('courses.closed')} color={textColor} className="w-6 h-6" />
+                              <LockIcon label={t('courses.closed')} color={textColor} className="w-[1.35rem] h-[1.35rem]" />
                               {(c.troupeId || c.mandatoryForTroupeIds.length > 0) && (
                                 <span
-                                  className="text-xs font-semibold leading-tight"
+                                  className="text-[0.675rem] font-semibold leading-tight"
                                   style={{ color: c.troupeId ? textColor : mandatoryColor }}
                                 >
                                   {c.troupeId
