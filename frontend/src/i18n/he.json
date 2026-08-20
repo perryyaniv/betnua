@@ -147,6 +147,8 @@
     "taskTitle": "כותרת המשימה",
     "assignee": "אחראי",
     "dueDate": "תאריך יעד",
+    "taskOverdue": "באיחור",
+    "taskUpcoming": "מתקרב",
     "filters": "סינון",
     "filterAllBranches": "כל הסניפים",
     "filterAllTypes": "כל הסוגים",

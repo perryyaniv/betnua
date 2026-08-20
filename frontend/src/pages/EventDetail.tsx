@@ -3,15 +3,19 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { getEvent, updateEvent, addTask, updateTask, deleteTask } from '../api/events';
 import { getUsers } from '../api/users';
-import { StudioEvent, User, EVENT_STATUSES, TASK_STATUSES } from '../types';
+import { getSettings } from '../api/settings';
+import { StudioEvent, User, AppSettings, EVENT_STATUSES, TASK_STATUSES } from '../types';
 import { useAuth } from '../contexts/AuthContext';
 import { hasWriteAccess } from '../utils/roles';
 import { formatDate, toDateInputValue } from '../utils/date';
+import { daysUntil } from '../utils/alerts';
 import { EVENT_STATUS_COLORS, TASK_STATUS_COLORS } from '../utils/statusColors';
 import Card from '../components/ui/Card';
 import Button from '../components/ui/Button';
 import Badge from '../components/ui/Badge';
 import Spinner from '../components/ui/Spinner';
+
+const OPEN_TASK_STATUSES = ['לביצוע', 'בתהליך'];
 
 export default function EventDetail() {
   const { id } = useParams<{ id: string }>();
@@ -22,16 +26,26 @@ export default function EventDetail() {
 
   const [event, setEvent] = useState<StudioEvent | null>(null);
   const [users, setUsers] = useState<User[]>([]);
+  const [settings, setSettings] = useState<AppSettings | null>(null);
   const [loading, setLoading] = useState(true);
   const [newTask, setNewTask] = useState({ title: '', assigneeId: '', dueDate: '' });
 
   useEffect(() => {
     if (!id) return;
     getEvent(id).then(setEvent).finally(() => setLoading(false));
+    getSettings().then(setSettings).catch(() => {});
     if (user?.role === 'admin') getUsers().then(setUsers).catch(() => {});
   }, [id, user?.role]);
 
   if (loading || !event) return <Spinner />;
+
+  const taskUrgency = (task: StudioEvent['tasks'][number]): 'overdue' | 'upcoming' | null => {
+    if (!task.dueDate || !OPEN_TASK_STATUSES.includes(task.status)) return null;
+    const days = daysUntil(task.dueDate);
+    if (days < 0) return 'overdue';
+    if (settings && days <= settings.taskDueAlertThresholdDays) return 'upcoming';
+    return null;
+  };
 
   const handleStatusChange = async (status: string) => {
     const updated = await updateEvent(event._id, { status } as never);
@@ -112,13 +126,26 @@ export default function EventDetail() {
       <div>
         <h3 className="section-title">{t('events.tasks')}</h3>
         <div className="space-y-2">
-          {event.tasks.map((task) => (
-            <Card key={task._id} className="flex items-center justify-between gap-3">
+          {event.tasks.map((task) => {
+            const urgency = taskUrgency(task);
+            return (
+            <Card
+              key={task._id}
+              className={`flex items-center justify-between gap-3 ${
+                urgency === 'overdue'
+                  ? 'border-red-300 border-r-red-500 bg-red-50'
+                  : urgency === 'upcoming'
+                    ? 'border-amber-300 border-r-amber-500 bg-amber-50'
+                    : ''
+              }`}
+            >
               <div>
                 <p className="font-medium text-gray-800">{task.title}</p>
-                <p className="text-xs text-gray-500">
+                <p className={`text-xs ${urgency === 'overdue' ? 'text-red-600 font-semibold' : urgency === 'upcoming' ? 'text-amber-700 font-medium' : 'text-gray-500'}`}>
                   {t('events.assignee')}: {assigneeName(task.assigneeId)}
                   {task.dueDate ? ` · ${t('events.dueDate')}: ${formatDate(task.dueDate)}` : ''}
+                  {urgency === 'overdue' ? ` · ${t('events.taskOverdue')}` : ''}
+                  {urgency === 'upcoming' ? ` · ${t('events.taskUpcoming')}` : ''}
                 </p>
               </div>
               <div className="flex items-center gap-2">
@@ -140,7 +167,8 @@ export default function EventDetail() {
                 )}
               </div>
             </Card>
-          ))}
+            );
+          })}
           {event.tasks.length === 0 && <p className="text-sm text-gray-400">{t('common.noData')}</p>}
         </div>
 
