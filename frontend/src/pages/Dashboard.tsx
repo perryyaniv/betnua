@@ -7,7 +7,7 @@ import { getBranches } from '../api/branches';
 import { getTeachers } from '../api/teachers';
 import { getCourses } from '../api/courses';
 import { StudioEvent, Branch, Teacher, Course, AppSettings, EventTask } from '../types';
-import { isWithinThreshold } from '../utils/alerts';
+import { daysUntil, isWithinThreshold } from '../utils/alerts';
 import { formatDate } from '../utils/date';
 import Card from '../components/ui/Card';
 import Badge from '../components/ui/Badge';
@@ -54,6 +54,14 @@ export default function Dashboard() {
     }
   }
   tasksDue.sort((a, b) => new Date(a.task.dueDate!).getTime() - new Date(b.task.dueDate!).getTime());
+
+  const taskUrgency = (task: EventTask): 'overdue' | 'upcoming' | null => {
+    if (!task.dueDate) return null;
+    const days = daysUntil(task.dueDate);
+    if (days < 0) return 'overdue';
+    if (days <= settings.taskDueAlertThresholdDays) return 'upcoming';
+    return null;
+  };
 
   const coursesPerBranch = branches.map((b) => ({
     branch: b.name,
@@ -112,19 +120,32 @@ export default function Dashboard() {
             <Card className="text-sm text-gray-500">{t('dashboard.noAlerts')}</Card>
           ) : (
             <div className="space-y-2">
-              {tasksDue.map(({ event, task }) => (
-                <Link key={task._id} to={`/events/${event._id}`}>
-                  <Card className="flex items-center justify-between gap-3 hover:bg-gray-50">
-                    <div>
-                      <p className="font-medium text-gray-800">{task.title}</p>
-                      <p className="text-xs text-gray-500">
-                        {event.title} · {t('events.dueDate')}: {formatDate(task.dueDate)}
-                      </p>
-                    </div>
-                    <Badge label={task.status} color={TASK_STATUS_COLORS[task.status]} />
-                  </Card>
-                </Link>
-              ))}
+              {tasksDue.map(({ event, task }) => {
+                const urgency = taskUrgency(task);
+                return (
+                  <Link key={task._id} to={`/events/${event._id}`}>
+                    <Card
+                      className={`flex items-center justify-between gap-3 hover:bg-gray-50 ${
+                        urgency === 'overdue'
+                          ? 'border-red-300 border-r-red-500 bg-red-50'
+                          : urgency === 'upcoming'
+                            ? 'border-amber-300 border-r-amber-500 bg-amber-50'
+                            : ''
+                      }`}
+                    >
+                      <div>
+                        <p className="font-medium text-gray-800">{task.title}</p>
+                        <p className={`text-xs ${urgency === 'overdue' ? 'text-red-600 font-semibold' : urgency === 'upcoming' ? 'text-amber-700 font-medium' : 'text-gray-500'}`}>
+                          {event.title} · {t('events.dueDate')}: {formatDate(task.dueDate)}
+                          {urgency === 'overdue' ? ` · ${t('events.taskOverdue')}` : ''}
+                          {urgency === 'upcoming' ? ` · ${t('events.taskUpcoming')}` : ''}
+                        </p>
+                      </div>
+                      <Badge label={task.status} color={TASK_STATUS_COLORS[task.status]} />
+                    </Card>
+                  </Link>
+                );
+              })}
             </div>
           )}
         </div>
