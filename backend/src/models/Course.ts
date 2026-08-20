@@ -3,8 +3,8 @@ import mongoose, { Schema, Document, Types } from 'mongoose';
 export type AgeCategory = 'youngest' | 'midElementary' | 'teens' | 'adultWomen';
 export const AGE_CATEGORIES: AgeCategory[] = ['youngest', 'midElementary', 'teens', 'adultWomen'];
 
-export type CourseLinkType = 'whatsapp' | 'image' | 'generic';
-export const COURSE_LINK_TYPES: CourseLinkType[] = ['whatsapp', 'image', 'generic'];
+export type CourseLinkType = 'whatsapp' | 'image' | 'registration' | 'generic';
+export const COURSE_LINK_TYPES: CourseLinkType[] = ['whatsapp', 'image', 'registration', 'generic'];
 
 export interface ICourseLink {
   _id: Types.ObjectId;

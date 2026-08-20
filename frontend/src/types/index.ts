@@ -102,8 +102,8 @@ export interface Troupe {
   isActive: boolean;
 }
 
-export type CourseLinkType = 'whatsapp' | 'image' | 'generic';
-export const COURSE_LINK_TYPES: CourseLinkType[] = ['whatsapp', 'image', 'generic'];
+export type CourseLinkType = 'whatsapp' | 'image' | 'registration' | 'generic';
+export const COURSE_LINK_TYPES: CourseLinkType[] = ['whatsapp', 'image', 'registration', 'generic'];
 
 export interface CourseLink {
   _id?: string; // absent for a link not yet saved (assigned by the server on create)

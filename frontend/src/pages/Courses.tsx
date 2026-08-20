@@ -73,12 +73,47 @@ function GenericLinkIcon({ className = 'w-4 h-4' }: { className?: string }) {
   );
 }
 
+function RegistrationIcon({ className = 'w-4 h-4' }: { className?: string }) {
+  return (
+    <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+      <path
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        strokeWidth={2}
+        d="M9 12h6m-6 4h4m1-13H8a2 2 0 00-2 2v14a2 2 0 002 2h8a2 2 0 002-2V7.828a2 2 0 00-.586-1.414l-2.828-2.828A2 2 0 0013.172 3z"
+      />
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 3v3a1 1 0 001 1h3" />
+    </svg>
+  );
+}
+
+function PaperclipIcon({ className = 'w-4 h-4' }: { className?: string }) {
+  return (
+    <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+      <path
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        strokeWidth={2}
+        d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 10-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13"
+      />
+    </svg>
+  );
+}
+
 const WHATSAPP_URL_RE = /wa\.me|whatsapp\.com/i;
 
 function CourseLinkIcon({ type, className }: { type: CourseLinkType; className?: string }) {
   if (type === 'whatsapp') return <WhatsappIcon className={className} />;
   if (type === 'image') return <ImageIcon className={className} />;
+  if (type === 'registration') return <RegistrationIcon className={className} />;
   return <GenericLinkIcon className={className} />;
+}
+
+function linkIconColorClass(type: CourseLinkType): string {
+  if (type === 'whatsapp') return 'text-[#25D366]';
+  if (type === 'image') return 'text-blue-500';
+  if (type === 'registration') return 'text-amber-500';
+  return 'text-gray-400';
 }
 
 const emptyForm = {
@@ -404,7 +439,7 @@ export default function Courses() {
                                 onClick={() => setOpenLinksId(openLinksId === c._id ? null : c._id)}
                                 aria-label={t('courses.links')}
                               >
-                                <GenericLinkIcon className="w-3.5 h-3.5" />
+                                <PaperclipIcon className="w-3.5 h-3.5" />
                               </button>
                               {openLinksId === c._id && (
                                 <>
@@ -421,7 +456,7 @@ export default function Courses() {
                                       >
                                         <CourseLinkIcon
                                           type={link.type}
-                                          className={`w-3.5 h-3.5 flex-shrink-0 ${link.type === 'whatsapp' ? 'text-[#25D366]' : 'text-gray-400'}`}
+                                          className={`w-3.5 h-3.5 flex-shrink-0 ${linkIconColorClass(link.type)}`}
                                         />
                                         {link.name}
                                       </a>
@@ -609,7 +644,7 @@ export default function Courses() {
             <div className="space-y-2">
               {form.links.map((link, i) => (
                 <div key={i} className="flex gap-2 items-center">
-                  <CourseLinkIcon type={link.type} className="w-4 h-4 flex-shrink-0 text-gray-400" />
+                  <CourseLinkIcon type={link.type} className={`w-4 h-4 flex-shrink-0 ${linkIconColorClass(link.type)}`} />
                   <input
                     className="input flex-1"
                     placeholder={t('courses.linkName')}
