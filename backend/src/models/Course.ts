@@ -3,10 +3,14 @@ import mongoose, { Schema, Document, Types } from 'mongoose';
 export type AgeCategory = 'youngest' | 'midElementary' | 'teens' | 'adultWomen';
 export const AGE_CATEGORIES: AgeCategory[] = ['youngest', 'midElementary', 'teens', 'adultWomen'];
 
-export interface IWhatsappLink {
+export type CourseLinkType = 'whatsapp' | 'image' | 'generic';
+export const COURSE_LINK_TYPES: CourseLinkType[] = ['whatsapp', 'image', 'generic'];
+
+export interface ICourseLink {
   _id: Types.ObjectId;
   name: string;
   url: string;
+  type: CourseLinkType;
 }
 
 export interface ICourse extends Document {
@@ -24,16 +28,17 @@ export interface ICourse extends Document {
   isOpen: boolean;
   troupeId?: mongoose.Types.ObjectId;
   mandatoryForTroupeIds: mongoose.Types.ObjectId[];
-  whatsappLinks: IWhatsappLink[];
+  links: ICourseLink[];
   capacity?: number;
   price?: number;
   isActive: boolean;
 }
 
-const WhatsappLinkSchema = new Schema<IWhatsappLink>(
+const CourseLinkSchema = new Schema<ICourseLink>(
   {
     name: { type: String, required: true, trim: true },
     url: { type: String, required: true, trim: true },
+    type: { type: String, enum: COURSE_LINK_TYPES, default: 'generic' },
   },
   { _id: true }
 );
@@ -54,7 +59,7 @@ const CourseSchema = new Schema<ICourse>(
     isOpen: { type: Boolean, default: true },
     troupeId: { type: Schema.Types.ObjectId, ref: 'Troupe' },
     mandatoryForTroupeIds: [{ type: Schema.Types.ObjectId, ref: 'Troupe' }],
-    whatsappLinks: { type: [WhatsappLinkSchema], default: [] },
+    links: { type: [CourseLinkSchema], default: [] },
     capacity: { type: Number },
     price: { type: Number },
     isActive: { type: Boolean, default: true },

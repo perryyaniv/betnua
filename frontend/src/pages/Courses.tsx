@@ -19,6 +19,8 @@ import {
   AGE_CATEGORY_TEXT_COLORS,
   AGE_CATEGORY_SECONDARY_TEXT_COLORS,
   DAY_NAMES,
+  CourseLinkType,
+  COURSE_LINK_TYPES,
 } from '../types';
 import { useAuth } from '../contexts/AuthContext';
 import { hasWriteAccess } from '../utils/roles';
@@ -44,6 +46,41 @@ function WhatsappIcon({ className = 'w-4 h-4' }: { className?: string }) {
   );
 }
 
+function ImageIcon({ className = 'w-4 h-4' }: { className?: string }) {
+  return (
+    <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+      <path
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        strokeWidth={2}
+        d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14M4 8h16M4 4h16a1 1 0 011 1v14a1 1 0 01-1 1H4a1 1 0 01-1-1V5a1 1 0 011-1z"
+      />
+      <circle cx="8.5" cy="8.5" r="1.5" fill="currentColor" stroke="none" />
+    </svg>
+  );
+}
+
+function GenericLinkIcon({ className = 'w-4 h-4' }: { className?: string }) {
+  return (
+    <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+      <path
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        strokeWidth={2}
+        d="M13.828 10.172a4 4 0 010 5.656l-3 3a4 4 0 01-5.656-5.656l1.5-1.5m6.828-1.5l1.5-1.5a4 4 0 10-5.656-5.656l-3 3a4 4 0 000 5.656"
+      />
+    </svg>
+  );
+}
+
+const WHATSAPP_URL_RE = /wa\.me|whatsapp\.com/i;
+
+function CourseLinkIcon({ type, className }: { type: CourseLinkType; className?: string }) {
+  if (type === 'whatsapp') return <WhatsappIcon className={className} />;
+  if (type === 'image') return <ImageIcon className={className} />;
+  return <GenericLinkIcon className={className} />;
+}
+
 const emptyForm = {
   branchId: '',
   courseTypeId: '',
@@ -59,7 +96,7 @@ const emptyForm = {
   isOpen: true,
   troupeId: '',
   mandatoryForTroupeIds: [] as string[],
-  whatsappLinks: [] as { name: string; url: string }[],
+  links: [] as { name: string; url: string; type: CourseLinkType }[],
   capacity: undefined as number | undefined,
   price: undefined as number | undefined,
 };
@@ -86,7 +123,7 @@ export default function Courses() {
   const [gridTroupeId, setGridTroupeId] = useState('');
   const [gridAgeCategory, setGridAgeCategory] = useState<AgeCategory | ''>('');
   const [searchQuery, setSearchQuery] = useState('');
-  const [openWhatsappId, setOpenWhatsappId] = useState<string | null>(null);
+  const [openLinksId, setOpenLinksId] = useState<string | null>(null);
   const [editing, setEditing] = useState<Course | null>(null);
   const [addModal, setAddModal] = useState(false);
   const [form, setForm] = useState(emptyForm);
@@ -130,7 +167,7 @@ export default function Courses() {
       c.ageCategory ? t(`courses.ageCategoryLabels.${c.ageCategory}`) : '',
       c.troupeId ? nameOf(troupes, c.troupeId) : '',
       c.mandatoryForTroupeIds.map((id) => nameOf(troupes, id)).join(' '),
-      c.whatsappLinks.map((l) => l.name).join(' '),
+      c.links.map((l) => l.name).join(' '),
     ]
       .join(' ')
       .toLowerCase();
@@ -177,7 +214,7 @@ export default function Courses() {
       isOpen: c.isOpen,
       troupeId: c.troupeId ? idOf(c.troupeId) : '',
       mandatoryForTroupeIds: c.mandatoryForTroupeIds.map(idOf),
-      whatsappLinks: c.whatsappLinks.map((l) => ({ name: l.name, url: l.url })),
+      links: c.links.map((l) => ({ name: l.name, url: l.url, type: l.type })),
       capacity: c.capacity,
       price: c.price,
     });
@@ -359,29 +396,33 @@ export default function Courses() {
                               )}
                             </div>
                           )}
-                          {c.whatsappLinks.length > 0 && (
+                          {c.links.length > 0 && (
                             <div className="relative flex-shrink-0" onClick={(e) => e.stopPropagation()}>
                               <button
                                 type="button"
-                                className="w-6 h-6 rounded-full bg-[#25D366] text-white flex items-center justify-center"
-                                onClick={() => setOpenWhatsappId(openWhatsappId === c._id ? null : c._id)}
-                                aria-label={t('courses.whatsappLinks')}
+                                className="w-6 h-6 rounded-full bg-primary text-white flex items-center justify-center"
+                                onClick={() => setOpenLinksId(openLinksId === c._id ? null : c._id)}
+                                aria-label={t('courses.links')}
                               >
-                                <WhatsappIcon className="w-3.5 h-3.5" />
+                                <GenericLinkIcon className="w-3.5 h-3.5" />
                               </button>
-                              {openWhatsappId === c._id && (
+                              {openLinksId === c._id && (
                                 <>
-                                  <div className="fixed inset-0 z-40" onClick={() => setOpenWhatsappId(null)} />
-                                  <div className="absolute left-0 top-full mt-1 z-50 bg-white border border-gray-200 rounded-lg shadow-xl py-1 min-w-[140px] text-right">
-                                    {c.whatsappLinks.map((link) => (
+                                  <div className="fixed inset-0 z-40" onClick={() => setOpenLinksId(null)} />
+                                  <div className="absolute left-0 top-full mt-1 z-50 bg-white border border-gray-200 rounded-lg shadow-xl py-1 min-w-[160px] text-right">
+                                    {c.links.map((link) => (
                                       <a
                                         key={link._id}
                                         href={link.url}
                                         target="_blank"
                                         rel="noopener noreferrer"
-                                        className="block px-3 py-1.5 text-sm text-gray-700 hover:bg-gray-50 whitespace-nowrap"
-                                        onClick={() => setOpenWhatsappId(null)}
+                                        className="flex items-center gap-2 px-3 py-1.5 text-sm text-gray-700 hover:bg-gray-50 whitespace-nowrap"
+                                        onClick={() => setOpenLinksId(null)}
                                       >
+                                        <CourseLinkIcon
+                                          type={link.type}
+                                          className={`w-3.5 h-3.5 flex-shrink-0 ${link.type === 'whatsapp' ? 'text-[#25D366]' : 'text-gray-400'}`}
+                                        />
                                         {link.name}
                                       </a>
                                     ))}
@@ -564,36 +605,56 @@ export default function Courses() {
           </div>
 
           <div>
-            <label className="label">{t('courses.whatsappLinks')}</label>
+            <label className="label">{t('courses.links')}</label>
             <div className="space-y-2">
-              {form.whatsappLinks.map((link, i) => (
-                <div key={i} className="flex gap-2">
+              {form.links.map((link, i) => (
+                <div key={i} className="flex gap-2 items-center">
+                  <CourseLinkIcon type={link.type} className="w-4 h-4 flex-shrink-0 text-gray-400" />
                   <input
                     className="input flex-1"
-                    placeholder={t('courses.whatsappLinkName')}
+                    placeholder={t('courses.linkName')}
                     value={link.name}
                     onChange={(e) =>
                       setForm((f) => ({
                         ...f,
-                        whatsappLinks: f.whatsappLinks.map((l, j) => (j === i ? { ...l, name: e.target.value } : l)),
+                        links: f.links.map((l, j) => (j === i ? { ...l, name: e.target.value } : l)),
                       }))
                     }
                   />
                   <input
                     className="input flex-1"
-                    placeholder={t('courses.whatsappLinkUrl')}
+                    placeholder={t('courses.linkUrl')}
                     value={link.url}
+                    onChange={(e) => {
+                      const url = e.target.value;
+                      setForm((f) => ({
+                        ...f,
+                        links: f.links.map((l, j) =>
+                          j === i ? { ...l, url, type: l.type === 'generic' && WHATSAPP_URL_RE.test(url) ? 'whatsapp' : l.type } : l
+                        ),
+                      }));
+                    }}
+                  />
+                  <select
+                    className="input flex-shrink-0 w-28"
+                    value={link.type}
                     onChange={(e) =>
                       setForm((f) => ({
                         ...f,
-                        whatsappLinks: f.whatsappLinks.map((l, j) => (j === i ? { ...l, url: e.target.value } : l)),
+                        links: f.links.map((l, j) => (j === i ? { ...l, type: e.target.value as CourseLinkType } : l)),
                       }))
                     }
-                  />
+                  >
+                    {COURSE_LINK_TYPES.map((type) => (
+                      <option key={type} value={type}>
+                        {t(`courses.linkTypeLabels.${type}`)}
+                      </option>
+                    ))}
+                  </select>
                   <button
                     type="button"
                     className="text-red-500 text-sm px-2 flex-shrink-0"
-                    onClick={() => setForm((f) => ({ ...f, whatsappLinks: f.whatsappLinks.filter((_, j) => j !== i) }))}
+                    onClick={() => setForm((f) => ({ ...f, links: f.links.filter((_, j) => j !== i) }))}
                   >
                     {t('common.delete')}
                   </button>
@@ -602,9 +663,9 @@ export default function Courses() {
               <Button
                 size="sm"
                 variant="secondary"
-                onClick={() => setForm((f) => ({ ...f, whatsappLinks: [...f.whatsappLinks, { name: '', url: '' }] }))}
+                onClick={() => setForm((f) => ({ ...f, links: [...f.links, { name: '', url: '', type: 'generic' }] }))}
               >
-                + {t('courses.addWhatsappLink')}
+                + {t('courses.addLink')}
               </Button>
             </div>
           </div>
