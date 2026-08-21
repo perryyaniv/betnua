@@ -68,24 +68,37 @@ export default function Dashboard() {
     count: courses.filter((c) => (typeof c.branchId === 'string' ? c.branchId : c.branchId._id) === b._id).length,
   }));
 
+  const eventsPrepSeverity: 'red' | 'amber' | null =
+    eventsNeedingPrep.length === 0 ? null : eventsNeedingPrep.some((e) => daysUntil(e.prepareDate) < 0) ? 'red' : 'amber';
+  const tasksDueSeverity: 'red' | 'amber' | null =
+    tasksDue.length === 0 ? null : tasksDue.some(({ task }) => taskUrgency(task) === 'overdue') ? 'red' : 'amber';
+
+  const kpiClasses = (severity: 'red' | 'amber' | null) => {
+    if (severity === 'red') return { card: 'bg-red-50 border-red-200 border-r-red-500', text: 'text-red-600' };
+    if (severity === 'amber') return { card: 'bg-amber-50 border-amber-200 border-r-amber-500', text: 'text-amber-600' };
+    return { card: '', text: 'text-primary' };
+  };
+  const prepKpi = kpiClasses(eventsPrepSeverity);
+  const tasksKpi = kpiClasses(tasksDueSeverity);
+
   return (
     <div className="space-y-6">
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-        <Card className="text-center">
-          <p className="text-2xl font-bold text-primary">{eventsNeedingPrep.length}</p>
-          <p className="text-xs text-gray-500 mt-1">{t('dashboard.eventsNeedingPrep')}</p>
+      <div className="grid grid-cols-4 gap-2">
+        <Card className={`text-center !p-2 sm:!p-3 ${prepKpi.card}`}>
+          <p className={`text-lg sm:text-xl font-bold ${prepKpi.text}`}>{eventsNeedingPrep.length}</p>
+          <p className="text-[10px] sm:text-xs text-gray-500 mt-0.5 leading-tight">{t('dashboard.eventsNeedingPrep')}</p>
         </Card>
-        <Card className="text-center">
-          <p className="text-2xl font-bold text-primary">{tasksDue.length}</p>
-          <p className="text-xs text-gray-500 mt-1">{t('dashboard.tasksDue')}</p>
+        <Card className={`text-center !p-2 sm:!p-3 ${tasksKpi.card}`}>
+          <p className={`text-lg sm:text-xl font-bold ${tasksKpi.text}`}>{tasksDue.length}</p>
+          <p className="text-[10px] sm:text-xs text-gray-500 mt-0.5 leading-tight">{t('dashboard.tasksDue')}</p>
         </Card>
-        <Card className="text-center">
-          <p className="text-2xl font-bold text-primary">{courses.length}</p>
-          <p className="text-xs text-gray-500 mt-1">{t('nav.courses')}</p>
+        <Card className="text-center !p-2 sm:!p-3">
+          <p className="text-lg sm:text-xl font-bold text-primary">{courses.length}</p>
+          <p className="text-[10px] sm:text-xs text-gray-500 mt-0.5 leading-tight">{t('nav.courses')}</p>
         </Card>
-        <Card className="text-center">
-          <p className="text-2xl font-bold text-primary">{teachers.filter((te) => te.isActive).length}</p>
-          <p className="text-xs text-gray-500 mt-1">{t('dashboard.activeTeachers')}</p>
+        <Card className="text-center !p-2 sm:!p-3">
+          <p className="text-lg sm:text-xl font-bold text-primary">{teachers.filter((te) => te.isActive).length}</p>
+          <p className="text-[10px] sm:text-xs text-gray-500 mt-0.5 leading-tight">{t('dashboard.activeTeachers')}</p>
         </Card>
       </div>
 

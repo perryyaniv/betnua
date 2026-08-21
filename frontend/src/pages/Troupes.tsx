@@ -101,8 +101,10 @@ export default function Troupes() {
   };
 
   const handleDelete = async (id: string) => {
+    if (!confirm(t('troupes.deleteConfirm'))) return;
     await deleteTroupe(id);
     setTroupes((prev) => prev.filter((tr) => tr._id !== id));
+    closeModal();
   };
 
   const handleAddMember = async () => {
@@ -183,31 +185,19 @@ export default function Troupes() {
           return (
             <Card
               key={tr._id}
+              className={canWrite ? 'cursor-pointer hover:brightness-[0.98] transition' : ''}
               style={bgColor ? { backgroundColor: bgColor, borderRightColor: bgColor } : undefined}
+              onClick={canWrite ? () => openEdit(tr) : undefined}
             >
-              <div className="flex items-start justify-between">
-                <div>
-                  <h3 className="font-bold" style={{ color: textColor }}>
-                    {tr.name}
-                  </h3>
-                  <p className="text-sm mt-1" style={{ color: secondaryTextColor }}>
-                    {nameOf(branches, tr.branchId)}
-                  </p>
-                  <p className="text-xs mt-1" style={{ color: secondaryTextColor }}>
-                    {t('troupes.members')}: {tr.members.filter((m) => m.isActive).length}
-                  </p>
-                </div>
-                {canWrite && (
-                  <div className="flex flex-col gap-1 items-end">
-                    <Button size="sm" variant="ghost" style={{ color: textColor }} onClick={() => openEdit(tr)}>
-                      {t('common.edit')}
-                    </Button>
-                    <button className="text-xs underline" style={{ color: textColor }} onClick={() => handleDelete(tr._id)}>
-                      {t('common.delete')}
-                    </button>
-                  </div>
-                )}
-              </div>
+              <h3 className="font-bold" style={{ color: textColor }}>
+                {tr.name}
+              </h3>
+              <p className="text-sm mt-1" style={{ color: secondaryTextColor }}>
+                {nameOf(branches, tr.branchId)}
+              </p>
+              <p className="text-xs mt-1" style={{ color: secondaryTextColor }}>
+                {t('troupes.members')}: {tr.members.filter((m) => m.isActive).length}
+              </p>
             </Card>
           );
         })}
@@ -272,13 +262,22 @@ export default function Troupes() {
             </div>
           )}
 
-          <div className="flex gap-3 justify-end">
-            <Button variant="secondary" onClick={closeModal}>
-              {t('common.cancel')}
-            </Button>
-            <Button loading={saving} onClick={handleSave}>
-              {t('common.save')}
-            </Button>
+          <div className="flex items-center justify-between">
+            <div>
+              {editing && (
+                <button className="text-sm text-red-500" onClick={() => handleDelete(editing._id)}>
+                  {t('common.delete')}
+                </button>
+              )}
+            </div>
+            <div className="flex gap-3">
+              <Button variant="secondary" onClick={closeModal}>
+                {t('common.cancel')}
+              </Button>
+              <Button loading={saving} onClick={handleSave}>
+                {t('common.save')}
+              </Button>
+            </div>
           </div>
         </div>
       </Modal>

@@ -41,7 +41,7 @@
   "dashboard": {
     "title": "בית",
     "eventsNeedingPrep": "אירועים דורשי הכנה",
-    "tasksDue": "משימות שממתינות/באיחור",
+    "tasksDue": "משימות דחופות",
     "coursesPerBranch": "חוגים לפי סניף",
     "activeTeachers": "מורים פעילים",
     "noAlerts": "אין התראות פתוחות כרגע"
@@ -127,7 +127,8 @@
     "removeMember": "הסרה",
     "deactivateMember": "השבתה",
     "reactivateMember": "הפעלה",
-    "noMembers": "אין חברות בלהקה"
+    "noMembers": "אין חברות בלהקה",
+    "deleteConfirm": "האם אתה בטוח שברצונך למחוק להקה זו?"
   },
   "events": {
     "title": "אירועים",
