@@ -142,8 +142,8 @@ export default function Events() {
 
   return (
     <div className="space-y-4">
-      <div className="flex items-end justify-between flex-wrap gap-2">
-        <div className="flex flex-nowrap gap-2 flex-1 min-w-0">
+      <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-2">
+        <div className="flex flex-nowrap gap-2 min-w-0">
           <div className="flex-1 min-w-0">
             <label className="label text-right">{t('events.branch')}</label>
             <select
@@ -191,26 +191,16 @@ export default function Events() {
           </div>
         </div>
         <div className="flex items-center gap-2 flex-shrink-0">
-          <div className="flex gap-0.5 bg-gray-100 rounded-lg p-0.5">
-            <button
-              type="button"
-              className={`px-3 py-1 text-sm rounded-md transition-colors ${
-                viewMode === 'cards' ? 'bg-white shadow-sm text-gray-800' : 'text-gray-500'
-              }`}
-              onClick={() => setViewMode('cards')}
-            >
-              {t('events.cardView')}
-            </button>
-            <button
-              type="button"
-              className={`px-3 py-1 text-sm rounded-md transition-colors ${
-                viewMode === 'table' ? 'bg-white shadow-sm text-gray-800' : 'text-gray-500'
-              }`}
-              onClick={() => setViewMode('table')}
-            >
-              {t('events.tableView')}
-            </button>
-          </div>
+          <button
+            type="button"
+            aria-pressed={viewMode === 'table'}
+            onClick={() => setViewMode(viewMode === 'table' ? 'cards' : 'table')}
+            className={`px-3 py-1.5 text-sm rounded-md border transition-colors ${
+              viewMode === 'table' ? 'bg-primary text-white border-primary' : 'bg-white text-gray-600 border-gray-300'
+            }`}
+          >
+            {t('events.tableToggle')}
+          </button>
           {canWrite && (
             <Button size="sm" onClick={() => setAddModal(true)}>
               + {t('events.addEvent')}

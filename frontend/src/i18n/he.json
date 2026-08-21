@@ -40,10 +40,8 @@
   },
   "dashboard": {
     "title": "בית",
-    "eventsNeedingPrep": "אירועים דורשי הכנה",
     "tasksDue": "משימות דחופות",
     "coursesPerBranch": "חוגים לפי סניף",
-    "activeTeachers": "מורים פעילים",
     "noAlerts": "אין התראות פתוחות כרגע"
   },
   "branches": {
@@ -154,8 +152,7 @@
     "filterAllBranches": "הכל",
     "filterAllTypes": "הכל",
     "filterAllStatuses": "הכל",
-    "cardView": "תצוגת כרטיסים",
-    "tableView": "תצוגת טבלה",
+    "tableToggle": "טבלה",
     "deleteConfirm": "האם אתה בטוח שברצונך למחוק אירוע זה?"
   },
   "eventTypes": {

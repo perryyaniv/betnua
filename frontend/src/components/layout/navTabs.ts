@@ -1,7 +1,7 @@
 import { UserRole } from '../../types';
 
 export function getNavTabs(role?: UserRole): string[] {
-  const tabs = ['/', '/courses', '/troupes'];
+  const tabs = ['/', '/courses', '/events'];
   if (role === 'admin') tabs.push('/settings');
   return tabs;
 }
