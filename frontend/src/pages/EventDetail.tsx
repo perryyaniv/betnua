@@ -133,15 +133,15 @@ export default function EventDetail() {
               key={task._id}
               className={`flex items-center justify-between gap-3 ${
                 urgency === 'overdue'
-                  ? 'border-red-300 border-r-red-500 bg-red-50'
+                  ? 'bg-red-600 border-red-600 border-r-red-800'
                   : urgency === 'upcoming'
-                    ? 'border-amber-300 border-r-amber-500 bg-amber-50'
+                    ? 'bg-orange-700 border-orange-700 border-r-orange-900'
                     : ''
               }`}
             >
               <div>
-                <p className="font-medium text-gray-800">{task.title}</p>
-                <p className={`text-xs ${urgency === 'overdue' ? 'text-red-600 font-semibold' : urgency === 'upcoming' ? 'text-amber-700 font-medium' : 'text-gray-500'}`}>
+                <p className={`font-medium ${urgency ? 'text-white' : 'text-gray-800'}`}>{task.title}</p>
+                <p className={`text-xs ${urgency ? 'text-white/90' : 'text-gray-500'}`}>
                   {t('events.assignee')}: {assigneeName(task.assigneeId)}
                   {task.dueDate ? ` · ${t('events.dueDate')}: ${formatDate(task.dueDate)}` : ''}
                   {urgency === 'overdue' ? ` · ${t('events.taskOverdue')}` : ''}

@@ -28,6 +28,16 @@ import Button from '../components/ui/Button';
 import Modal from '../components/ui/Modal';
 import Spinner from '../components/ui/Spinner';
 
+function EllipsisIcon({ className = 'w-4 h-4' }: { className?: string }) {
+  return (
+    <svg className={className} fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+      <circle cx="5" cy="12" r="2" />
+      <circle cx="12" cy="12" r="2" />
+      <circle cx="19" cy="12" r="2" />
+    </svg>
+  );
+}
+
 function LockIcon({ label, color, className = 'w-3.5 h-3.5' }: { label: string; color: string; className?: string }) {
   return (
     <svg className={`inline ${className}`} style={{ color }} fill="none" stroke="currentColor" viewBox="0 0 24 24" role="img" aria-label={label}>
@@ -394,7 +404,7 @@ export default function Courses() {
                               )}
                             </p>
                           </div>
-                          {!c.isOpen && (
+                          {!c.isOpen ? (
                             <div className="flex flex-col items-center flex-shrink-0 text-center">
                               <LockIcon label={t('courses.closed')} color={textColor} className="w-[1.35rem] h-[1.35rem]" />
                               {(c.troupeId || c.mandatoryForTroupeIds.length > 0) && (
@@ -408,6 +418,18 @@ export default function Courses() {
                                 </span>
                               )}
                             </div>
+                          ) : (
+                            canWrite && (
+                              <button
+                                type="button"
+                                className="flex-shrink-0"
+                                style={{ color: secondaryTextColor }}
+                                onClick={() => openEdit(c)}
+                                aria-label={t('common.edit')}
+                              >
+                                <EllipsisIcon className="w-[1.35rem] h-[1.35rem]" />
+                              </button>
+                            )
                           )}
                           {c.links.length > 0 && (
                             <div className="relative flex-shrink-0" onClick={(e) => e.stopPropagation()}>
