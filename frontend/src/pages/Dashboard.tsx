@@ -63,31 +63,27 @@ export default function Dashboard() {
     setEvents((prev) => prev.map((e) => (e._id === eventId ? updated : e)));
   };
 
-  const coursesPerBranch = branches.map((b) => ({
-    branch: b.name,
-    count: courses.filter((c) => (typeof c.branchId === 'string' ? c.branchId : c.branchId._id) === b._id).length,
-  }));
+  const overdueCount = tasksDue.filter(({ task }) => taskUrgency(task) === 'overdue').length;
+  const upcomingCount = tasksDue.filter(({ task }) => taskUrgency(task) === 'upcoming').length;
 
-  const tasksDueSeverity: 'red' | 'amber' | null =
-    tasksDue.length === 0 ? null : tasksDue.some(({ task }) => taskUrgency(task) === 'overdue') ? 'red' : 'amber';
-
-  const kpiClasses = (severity: 'red' | 'amber' | null) => {
-    if (severity === 'red') return { card: 'bg-red-50 border-red-200 border-r-red-500', text: 'text-red-600' };
-    if (severity === 'amber') return { card: 'bg-amber-50 border-amber-200 border-r-amber-500', text: 'text-amber-600' };
-    return { card: '', text: 'text-primary' };
-  };
-  const tasksKpi = kpiClasses(tasksDueSeverity);
+  const branchKpis = [
+    { label: t('dashboard.total'), count: courses.length },
+    ...branches.map((b) => ({
+      label: b.name,
+      count: courses.filter((c) => (typeof c.branchId === 'string' ? c.branchId : c.branchId._id) === b._id).length,
+    })),
+  ];
 
   return (
     <div className="space-y-6">
       <div className="grid grid-cols-2 gap-2">
-        <Card className={`text-center !p-3 ${tasksKpi.card}`}>
-          <p className={`text-2xl font-bold leading-none ${tasksKpi.text}`}>{tasksDue.length}</p>
+        <Card className={`text-center !p-3 ${overdueCount > 0 ? 'bg-red-50 border-red-200 border-r-red-500' : ''}`}>
+          <p className={`text-2xl font-bold leading-none ${overdueCount > 0 ? 'text-red-600' : 'text-primary'}`}>{overdueCount}</p>
           <p className="text-xs text-gray-500 mt-1">{t('dashboard.tasksDue')}</p>
         </Card>
-        <Card className="text-center !p-3">
-          <p className="text-2xl font-bold leading-none text-primary">{courses.length}</p>
-          <p className="text-xs text-gray-500 mt-1">{t('nav.courses')}</p>
+        <Card className={`text-center !p-3 ${upcomingCount > 0 ? 'bg-amber-50 border-amber-200 border-r-amber-500' : ''}`}>
+          <p className={`text-2xl font-bold leading-none ${upcomingCount > 0 ? 'text-amber-600' : 'text-primary'}`}>{upcomingCount}</p>
+          <p className="text-xs text-gray-500 mt-1">{t('dashboard.tasksAlert')}</p>
         </Card>
       </div>
 
@@ -134,11 +130,11 @@ export default function Dashboard() {
 
       <div>
         <h2 className="section-title">{t('dashboard.coursesPerBranch')}</h2>
-        <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-          {coursesPerBranch.map((row) => (
-            <Card key={row.branch} className="text-center !p-1.5">
-              <p className="text-base font-bold leading-none text-primary">{row.count}</p>
-              <p className="text-[10px] text-gray-500 mt-0.5 leading-tight">{row.branch}</p>
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+          {branchKpis.map((row) => (
+            <Card key={row.label} className="text-center !p-2">
+              <p className="text-xl font-bold leading-none text-primary">{row.count}</p>
+              <p className="text-sm text-gray-600 mt-1">{row.label}</p>
             </Card>
           ))}
         </div>

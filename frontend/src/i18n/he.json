@@ -41,7 +41,9 @@
   "dashboard": {
     "title": "בית",
     "tasksDue": "משימות דחופות",
+    "tasksAlert": "משימות בהתראה",
     "coursesPerBranch": "חוגים לפי סניף",
+    "total": "סה\"כ",
     "noAlerts": "אין התראות פתוחות כרגע"
   },
   "branches": {
