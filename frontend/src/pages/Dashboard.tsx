@@ -77,13 +77,13 @@ export default function Dashboard() {
   return (
     <div className="space-y-6">
       <div className="grid grid-cols-2 gap-2">
-        <Card className={`text-center !p-3 ${overdueCount > 0 ? 'bg-red-600 border-red-600 border-r-red-800' : ''}`}>
-          <p className={`text-2xl font-bold leading-none ${overdueCount > 0 ? 'text-white' : 'text-primary'}`}>{overdueCount}</p>
-          <p className={`text-xs mt-1 ${overdueCount > 0 ? 'text-white/90' : 'text-gray-500'}`}>{t('dashboard.tasksDue')}</p>
+        <Card className={`text-center !p-3 ${overdueCount > 0 ? 'bg-red-50 border-red-200 border-r-red-500' : ''}`}>
+          <p className={`text-2xl font-bold leading-none ${overdueCount > 0 ? 'text-red-600' : 'text-primary'}`}>{overdueCount}</p>
+          <p className="text-xs text-gray-500 mt-1">{t('dashboard.tasksDue')}</p>
         </Card>
-        <Card className={`text-center !p-3 ${upcomingCount > 0 ? 'bg-orange-700 border-orange-700 border-r-orange-900' : ''}`}>
-          <p className={`text-2xl font-bold leading-none ${upcomingCount > 0 ? 'text-white' : 'text-primary'}`}>{upcomingCount}</p>
-          <p className={`text-xs mt-1 ${upcomingCount > 0 ? 'text-white/90' : 'text-gray-500'}`}>{t('dashboard.tasksAlert')}</p>
+        <Card className={`text-center !p-3 ${upcomingCount > 0 ? 'bg-amber-50 border-amber-200 border-r-amber-500' : ''}`}>
+          <p className={`text-2xl font-bold leading-none ${upcomingCount > 0 ? 'text-amber-600' : 'text-primary'}`}>{upcomingCount}</p>
+          <p className="text-xs text-gray-500 mt-1">{t('dashboard.tasksAlert')}</p>
         </Card>
       </div>
 
@@ -100,9 +100,9 @@ export default function Dashboard() {
                   key={task._id}
                   className={`flex items-center gap-3 ${
                     urgency === 'overdue'
-                      ? 'bg-red-600 border-red-600 border-r-red-800'
+                      ? 'border-red-300 border-r-red-500 bg-red-50'
                       : urgency === 'upcoming'
-                        ? 'bg-orange-700 border-orange-700 border-r-orange-900'
+                        ? 'border-amber-300 border-r-amber-500 bg-amber-50'
                         : ''
                   }`}
                 >
@@ -113,8 +113,8 @@ export default function Dashboard() {
                     onChange={() => handleToggleTask(event._id, task)}
                   />
                   <Link to={`/events/${event._id}`} className="flex-1 min-w-0 hover:opacity-80">
-                    <p className={`font-medium truncate ${urgency ? 'text-white' : 'text-gray-800'}`}>{task.title}</p>
-                    <p className={`text-xs truncate ${urgency ? 'text-white/90' : 'text-gray-500'}`}>
+                    <p className="font-medium text-gray-800 truncate">{task.title}</p>
+                    <p className={`text-xs truncate ${urgency === 'overdue' ? 'text-red-600 font-semibold' : urgency === 'upcoming' ? 'text-amber-700 font-medium' : 'text-gray-500'}`}>
                       {event.title} · {t('events.dueDate')}: {formatDate(task.dueDate)}
                       {urgency === 'overdue' ? ` · ${t('events.taskOverdue')}` : ''}
                       {urgency === 'upcoming' ? ` · ${t('events.taskUpcoming')}` : ''}

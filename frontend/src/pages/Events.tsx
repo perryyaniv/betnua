@@ -42,7 +42,6 @@ export default function Events() {
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
   const [filters, setFilters] = useState({ branchId: '', eventType: '', status: '' });
-  const [searchQuery, setSearchQuery] = useState('');
   const [viewMode, setViewMode] = useState<'cards' | 'table'>('cards');
   const [expandedIds, setExpandedIds] = useState<Set<string>>(new Set());
   const [addModal, setAddModal] = useState(false);
@@ -61,28 +60,15 @@ export default function Events() {
 
   const idOf = (v?: string | { _id: string } | null) => (!v ? null : typeof v === 'string' ? v : v._id);
 
-  const matchesSearch = (e: StudioEvent, query: string) => {
-    const q = query.trim().toLowerCase();
-    if (!q) return true;
-    const branch = e.branchId
-      ? typeof e.branchId === 'string'
-        ? branches.find((b) => b._id === e.branchId)?.name
-        : e.branchId.name
-      : t('events.studioWide');
-    const haystack = [e.title, branch ?? '', t(`eventTypes.${e.eventType}`), t(`eventStatus.${e.status}`), ...e.tasks.map((tk) => tk.title)];
-    return haystack.some((h) => h.toLowerCase().includes(q));
-  };
-
   const filtered = useMemo(
     () =>
       events.filter(
         (e) =>
           (!filters.branchId || idOf(e.branchId) === filters.branchId) &&
           (!filters.eventType || e.eventType === filters.eventType) &&
-          (!filters.status || e.status === filters.status) &&
-          matchesSearch(e, searchQuery)
+          (!filters.status || e.status === filters.status)
       ),
-    [events, filters, searchQuery, branches]
+    [events, filters]
   );
 
   const sorted = useMemo(
@@ -156,17 +142,6 @@ export default function Events() {
 
   return (
     <div className="space-y-4">
-      <div>
-        <label className="label text-right">{t('common.search')}</label>
-        <input
-          type="text"
-          className="input w-full"
-          placeholder={t('events.searchPlaceholder')}
-          value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
-        />
-      </div>
-
       <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-2">
         <div className="flex flex-nowrap gap-2 min-w-0">
           <div className="flex-1 min-w-0">
@@ -240,46 +215,45 @@ export default function Events() {
             const expanded = expandedIds.has(e._id);
             const severity = eventSeverity(e);
             return (
-              <div key={e._id} className="rounded-md border border-gray-200 bg-white overflow-hidden">
+              <div key={e._id} className="card !p-0 overflow-hidden">
                 <div
-                  className="flex items-center gap-2 p-2 cursor-pointer hover:bg-gray-50"
+                  className="flex items-center justify-between gap-3 p-4 cursor-pointer"
                   onClick={() => toggleExpanded(e._id)}
                 >
-                  <span className="text-gray-400 text-xs flex-shrink-0 w-3">{expanded ? '▲' : '▼'}</span>
-                  <div className="flex-1 min-w-0">
-                    <Link
-                      to={`/events/${e._id}`}
-                      className="text-sm font-semibold text-gray-800 hover:text-primary"
-                      onClick={(ev) => ev.stopPropagation()}
-                    >
-                      {e.title}
-                    </Link>
-                    <p className="text-xs text-gray-500 truncate">
-                      {branchName(e)} · {t(`eventTypes.${e.eventType}`)} · {t('events.eventDate')}: {formatDate(e.eventDate)}
-                    </p>
+                  <div className="flex items-center gap-2 min-w-0">
+                    <span className="text-gray-400 text-xs flex-shrink-0 w-3">{expanded ? '▲' : '▼'}</span>
+                    <div className="min-w-0">
+                      <div className="flex items-center gap-1.5">
+                        <Link
+                          to={`/events/${e._id}`}
+                          className="font-medium text-gray-800 hover:text-primary"
+                          onClick={(ev) => ev.stopPropagation()}
+                        >
+                          {e.title}
+                        </Link>
+                        {severity && (
+                          <span
+                            className={severity === 'overdue' ? 'text-red-500' : 'text-amber-500'}
+                            title={t(severity === 'overdue' ? 'events.taskOverdue' : 'events.taskUpcoming')}
+                          >
+                            <AlertIcon className="w-4 h-4" />
+                          </span>
+                        )}
+                      </div>
+                      <p className="text-xs text-gray-500 mt-0.5 truncate">
+                        {branchName(e)} · {t(`eventTypes.${e.eventType}`)} · {t('events.eventDate')}: {formatDate(e.eventDate)} ·{' '}
+                        {t('events.prepareDate')}: {formatDate(e.prepareDate)}
+                      </p>
+                    </div>
                   </div>
-                  <Badge label={t(`eventStatus.${e.status}`)} color={EVENT_STATUS_COLORS[e.status]} />
-                  {severity && (
-                    <span
-                      className={`w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0 text-white ${
-                        severity === 'overdue' ? 'bg-red-600' : 'bg-orange-700'
-                      }`}
-                      title={t(severity === 'overdue' ? 'events.taskOverdue' : 'events.taskUpcoming')}
-                    >
-                      <AlertIcon className="w-3.5 h-3.5" />
-                    </span>
-                  )}
-                  {canWrite && (
-                    <button
-                      className="text-xs text-red-500 flex-shrink-0"
-                      onClick={(ev) => {
-                        ev.stopPropagation();
-                        handleDelete(e._id);
-                      }}
-                    >
-                      {t('common.delete')}
-                    </button>
-                  )}
+                  <div className="flex items-center gap-2 flex-shrink-0" onClick={(ev) => ev.stopPropagation()}>
+                    <Badge label={t(`eventStatus.${e.status}`)} color={EVENT_STATUS_COLORS[e.status]} />
+                    {canWrite && (
+                      <button className="text-xs text-red-500" onClick={() => handleDelete(e._id)}>
+                        {t('common.delete')}
+                      </button>
+                    )}
+                  </div>
                 </div>
                 {expanded && (
                   <div className="border-t border-gray-100 divide-y divide-gray-100">
@@ -289,9 +263,13 @@ export default function Events() {
                       e.tasks.map((task) => {
                         const urgency = taskUrgency(task);
                         const done = task.status === 'הושלם';
-                        const alertBg = urgency === 'overdue' ? 'bg-red-600' : urgency === 'upcoming' ? 'bg-orange-700' : '';
                         return (
-                          <div key={task._id} className={`flex items-center gap-3 px-4 py-2.5 ${alertBg}`}>
+                          <div
+                            key={task._id}
+                            className={`flex items-center gap-3 px-4 py-2.5 ${
+                              urgency === 'overdue' ? 'bg-red-50' : urgency === 'upcoming' ? 'bg-amber-50' : ''
+                            }`}
+                          >
                             <input
                               type="checkbox"
                               className="w-4 h-4 accent-primary flex-shrink-0"
@@ -300,14 +278,16 @@ export default function Events() {
                               onChange={() => handleToggleTask(e._id, task)}
                             />
                             <div className="flex-1 min-w-0">
+                              <p className={`text-sm ${done ? 'text-gray-400 line-through' : 'text-gray-800'}`}>{task.title}</p>
                               <p
-                                className={`text-sm ${
-                                  done ? 'text-gray-400 line-through' : urgency ? 'text-white font-medium' : 'text-gray-800'
+                                className={`text-xs ${
+                                  urgency === 'overdue'
+                                    ? 'text-red-600 font-semibold'
+                                    : urgency === 'upcoming'
+                                      ? 'text-amber-700 font-medium'
+                                      : 'text-gray-500'
                                 }`}
                               >
-                                {task.title}
-                              </p>
-                              <p className={`text-xs ${urgency ? 'text-white/90' : 'text-gray-500'}`}>
                                 {t('events.assignee')}: {assigneeName(task.assigneeId)}
                                 {task.dueDate ? ` · ${t('events.dueDate')}: ${formatDate(task.dueDate)}` : ''}
                                 {urgency === 'overdue' ? ` · ${t('events.taskOverdue')}` : ''}

@@ -155,7 +155,6 @@
     "filterAllTypes": "הכל",
     "filterAllStatuses": "הכל",
     "tableToggle": "טבלה",
-    "searchPlaceholder": "חיפוש לפי כותרת, סניף, סוג, סטטוס או משימה",
     "deleteConfirm": "האם אתה בטוח שברצונך למחוק אירוע זה?"
   },
   "eventTypes": {
