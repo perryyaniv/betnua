@@ -14,6 +14,19 @@ import Spinner from '../components/ui/Spinner';
 const OPEN_EVENT_STATUSES = ['מתוכנן', 'בהכנה'];
 const OPEN_TASK_STATUSES = ['לביצוע', 'בתהליך'];
 
+function AlertIcon({ className = 'w-3.5 h-3.5' }: { className?: string }) {
+  return (
+    <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+      <path
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        strokeWidth={2}
+        d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.947-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z"
+      />
+    </svg>
+  );
+}
+
 export default function Dashboard() {
   const { t } = useTranslation();
   const [events, setEvents] = useState<StudioEvent[]>([]);
@@ -75,13 +88,19 @@ export default function Dashboard() {
   return (
     <div className="space-y-6">
       <div className="grid grid-cols-2 gap-2">
-        <Card className={`text-center !py-1.5 !px-2 ${overdueCount > 0 ? 'bg-red-50 border-red-200 border-r-red-500' : ''}`}>
-          <p className={`text-xl font-bold leading-none ${overdueCount > 0 ? 'text-red-600' : 'text-primary'}`}>{overdueCount}</p>
-          <p className="text-[11px] text-gray-500 mt-0.5 leading-tight">{t('dashboard.tasksDue')}</p>
+        <Card className={`text-center !py-1.5 !px-2 ${overdueCount > 0 ? 'border-r-red-500' : ''}`}>
+          <p className={`text-2xl font-bold leading-none ${overdueCount > 0 ? 'text-red-600' : 'text-primary'}`}>{overdueCount}</p>
+          <p className="text-xs text-gray-500 mt-1 flex items-center justify-center gap-1">
+            {overdueCount > 0 && <AlertIcon className="w-3.5 h-3.5 text-red-500" />}
+            {t('dashboard.tasksDue')}
+          </p>
         </Card>
-        <Card className={`text-center !py-1.5 !px-2 ${upcomingCount > 0 ? 'bg-amber-50 border-amber-200 border-r-amber-500' : ''}`}>
-          <p className={`text-xl font-bold leading-none ${upcomingCount > 0 ? 'text-amber-600' : 'text-primary'}`}>{upcomingCount}</p>
-          <p className="text-[11px] text-gray-500 mt-0.5 leading-tight">{t('dashboard.tasksAlert')}</p>
+        <Card className={`text-center !py-1.5 !px-2 ${upcomingCount > 0 ? 'border-r-amber-500' : ''}`}>
+          <p className={`text-2xl font-bold leading-none ${upcomingCount > 0 ? 'text-amber-600' : 'text-primary'}`}>{upcomingCount}</p>
+          <p className="text-xs text-gray-500 mt-1 flex items-center justify-center gap-1">
+            {upcomingCount > 0 && <AlertIcon className="w-3.5 h-3.5 text-amber-500" />}
+            {t('dashboard.tasksAlert')}
+          </p>
         </Card>
       </div>
 
@@ -130,8 +149,8 @@ export default function Dashboard() {
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
           {branchKpis.map((row) => (
             <Card key={row.label} className="text-center !py-1.5 !px-2">
-              <p className="text-lg font-bold leading-none text-primary">{row.count}</p>
-              <p className="text-[11px] text-gray-600 mt-0.5 leading-tight">{row.label}</p>
+              <p className="text-xl font-bold leading-none text-primary">{row.count}</p>
+              <p className="text-xs text-gray-600 mt-1">{row.label}</p>
             </Card>
           ))}
         </div>
