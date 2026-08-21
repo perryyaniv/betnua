@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { getEvents } from '../api/events';
+import { getEvents, updateTask } from '../api/events';
 import { getSettings } from '../api/settings';
 import { getBranches } from '../api/branches';
 import { getTeachers } from '../api/teachers';
@@ -63,6 +63,12 @@ export default function Dashboard() {
     return null;
   };
 
+  const handleToggleTask = async (eventId: string, task: EventTask) => {
+    const nextStatus = task.status === 'הושלם' ? 'לביצוע' : 'הושלם';
+    const updated = await updateTask(eventId, task._id, { status: nextStatus });
+    setEvents((prev) => prev.map((e) => (e._id === eventId ? updated : e)));
+  };
+
   const coursesPerBranch = branches.map((b) => ({
     branch: b.name,
     count: courses.filter((c) => (typeof c.branchId === 'string' ? c.branchId : c.branchId._id) === b._id).length,
@@ -84,21 +90,21 @@ export default function Dashboard() {
   return (
     <div className="space-y-6">
       <div className="grid grid-cols-4 gap-2">
-        <Card className={`text-center !p-2 sm:!p-3 ${prepKpi.card}`}>
-          <p className={`text-lg sm:text-xl font-bold ${prepKpi.text}`}>{eventsNeedingPrep.length}</p>
-          <p className="text-[10px] sm:text-xs text-gray-500 mt-0.5 leading-tight">{t('dashboard.eventsNeedingPrep')}</p>
+        <Card className={`text-center !p-1.5 ${prepKpi.card}`}>
+          <p className={`text-base font-bold leading-none ${prepKpi.text}`}>{eventsNeedingPrep.length}</p>
+          <p className="text-[10px] text-gray-500 mt-0.5 leading-tight">{t('dashboard.eventsNeedingPrep')}</p>
         </Card>
-        <Card className={`text-center !p-2 sm:!p-3 ${tasksKpi.card}`}>
-          <p className={`text-lg sm:text-xl font-bold ${tasksKpi.text}`}>{tasksDue.length}</p>
-          <p className="text-[10px] sm:text-xs text-gray-500 mt-0.5 leading-tight">{t('dashboard.tasksDue')}</p>
+        <Card className={`text-center !p-1.5 ${tasksKpi.card}`}>
+          <p className={`text-base font-bold leading-none ${tasksKpi.text}`}>{tasksDue.length}</p>
+          <p className="text-[10px] text-gray-500 mt-0.5 leading-tight">{t('dashboard.tasksDue')}</p>
         </Card>
-        <Card className="text-center !p-2 sm:!p-3">
-          <p className="text-lg sm:text-xl font-bold text-primary">{courses.length}</p>
-          <p className="text-[10px] sm:text-xs text-gray-500 mt-0.5 leading-tight">{t('nav.courses')}</p>
+        <Card className="text-center !p-1.5">
+          <p className="text-base font-bold leading-none text-primary">{courses.length}</p>
+          <p className="text-[10px] text-gray-500 mt-0.5 leading-tight">{t('nav.courses')}</p>
         </Card>
-        <Card className="text-center !p-2 sm:!p-3">
-          <p className="text-lg sm:text-xl font-bold text-primary">{teachers.filter((te) => te.isActive).length}</p>
-          <p className="text-[10px] sm:text-xs text-gray-500 mt-0.5 leading-tight">{t('dashboard.activeTeachers')}</p>
+        <Card className="text-center !p-1.5">
+          <p className="text-base font-bold leading-none text-primary">{teachers.filter((te) => te.isActive).length}</p>
+          <p className="text-[10px] text-gray-500 mt-0.5 leading-tight">{t('dashboard.activeTeachers')}</p>
         </Card>
       </div>
 
@@ -136,27 +142,32 @@ export default function Dashboard() {
               {tasksDue.map(({ event, task }) => {
                 const urgency = taskUrgency(task);
                 return (
-                  <Link key={task._id} to={`/events/${event._id}`}>
-                    <Card
-                      className={`flex items-center justify-between gap-3 hover:bg-gray-50 ${
-                        urgency === 'overdue'
-                          ? 'border-red-300 border-r-red-500 bg-red-50'
-                          : urgency === 'upcoming'
-                            ? 'border-amber-300 border-r-amber-500 bg-amber-50'
-                            : ''
-                      }`}
-                    >
-                      <div>
-                        <p className="font-medium text-gray-800">{task.title}</p>
-                        <p className={`text-xs ${urgency === 'overdue' ? 'text-red-600 font-semibold' : urgency === 'upcoming' ? 'text-amber-700 font-medium' : 'text-gray-500'}`}>
-                          {event.title} · {t('events.dueDate')}: {formatDate(task.dueDate)}
-                          {urgency === 'overdue' ? ` · ${t('events.taskOverdue')}` : ''}
-                          {urgency === 'upcoming' ? ` · ${t('events.taskUpcoming')}` : ''}
-                        </p>
-                      </div>
-                      <Badge label={task.status} color={TASK_STATUS_COLORS[task.status]} />
-                    </Card>
-                  </Link>
+                  <Card
+                    key={task._id}
+                    className={`flex items-center gap-3 ${
+                      urgency === 'overdue'
+                        ? 'border-red-300 border-r-red-500 bg-red-50'
+                        : urgency === 'upcoming'
+                          ? 'border-amber-300 border-r-amber-500 bg-amber-50'
+                          : ''
+                    }`}
+                  >
+                    <input
+                      type="checkbox"
+                      className="w-4 h-4 accent-primary flex-shrink-0"
+                      checked={false}
+                      onChange={() => handleToggleTask(event._id, task)}
+                    />
+                    <Link to={`/events/${event._id}`} className="flex-1 min-w-0 hover:opacity-80">
+                      <p className="font-medium text-gray-800">{task.title}</p>
+                      <p className={`text-xs ${urgency === 'overdue' ? 'text-red-600 font-semibold' : urgency === 'upcoming' ? 'text-amber-700 font-medium' : 'text-gray-500'}`}>
+                        {event.title} · {t('events.dueDate')}: {formatDate(task.dueDate)}
+                        {urgency === 'overdue' ? ` · ${t('events.taskOverdue')}` : ''}
+                        {urgency === 'upcoming' ? ` · ${t('events.taskUpcoming')}` : ''}
+                      </p>
+                    </Link>
+                    <Badge label={task.status} color={TASK_STATUS_COLORS[task.status]} />
+                  </Card>
                 );
               })}
             </div>
@@ -168,9 +179,9 @@ export default function Dashboard() {
         <h2 className="section-title">{t('dashboard.coursesPerBranch')}</h2>
         <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
           {coursesPerBranch.map((row) => (
-            <Card key={row.branch} className="text-center">
-              <p className="text-xl font-bold text-primary">{row.count}</p>
-              <p className="text-xs text-gray-500 mt-1">{row.branch}</p>
+            <Card key={row.branch} className="text-center !p-1.5">
+              <p className="text-base font-bold leading-none text-primary">{row.count}</p>
+              <p className="text-[10px] text-gray-500 mt-0.5 leading-tight">{row.branch}</p>
             </Card>
           ))}
         </div>

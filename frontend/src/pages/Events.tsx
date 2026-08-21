@@ -18,6 +18,19 @@ import Spinner from '../components/ui/Spinner';
 
 const emptyForm = { title: '', description: '', branchId: '', eventType: 'אחר', eventDate: '', prepareDate: '' };
 
+function AlertIcon({ className = 'w-4 h-4' }: { className?: string }) {
+  return (
+    <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+      <path
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        strokeWidth={2}
+        d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.947-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z"
+      />
+    </svg>
+  );
+}
+
 export default function Events() {
   const { t } = useTranslation();
   const { user } = useAuth();
@@ -115,48 +128,67 @@ export default function Events() {
     return null;
   };
 
+  const eventSeverity = (e: StudioEvent): 'overdue' | 'upcoming' | null => {
+    let upcoming = false;
+    for (const task of e.tasks) {
+      const urgency = taskUrgency(task);
+      if (urgency === 'overdue') return 'overdue';
+      if (urgency === 'upcoming') upcoming = true;
+    }
+    return upcoming ? 'upcoming' : null;
+  };
+
   if (loading) return <Spinner />;
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center justify-between flex-wrap gap-2">
+      <div className="flex items-end justify-between flex-wrap gap-2">
         <div className="flex flex-nowrap gap-2 flex-1 min-w-0">
-          <select
-            className="input flex-1 min-w-0"
-            value={filters.branchId}
-            onChange={(e) => setFilters((f) => ({ ...f, branchId: e.target.value }))}
-          >
-            <option value="">{t('events.filterAllBranches')}</option>
-            {branches.map((b) => (
-              <option key={b._id} value={b._id}>
-                {b.name}
-              </option>
-            ))}
-          </select>
-          <select
-            className="input flex-1 min-w-0"
-            value={filters.eventType}
-            onChange={(e) => setFilters((f) => ({ ...f, eventType: e.target.value }))}
-          >
-            <option value="">{t('events.filterAllTypes')}</option>
-            {EVENT_TYPES.map((et) => (
-              <option key={et} value={et}>
-                {t(`eventTypes.${et}`)}
-              </option>
-            ))}
-          </select>
-          <select
-            className="input flex-1 min-w-0"
-            value={filters.status}
-            onChange={(e) => setFilters((f) => ({ ...f, status: e.target.value }))}
-          >
-            <option value="">{t('events.filterAllStatuses')}</option>
-            {EVENT_STATUSES.map((s) => (
-              <option key={s} value={s}>
-                {t(`eventStatus.${s}`)}
-              </option>
-            ))}
-          </select>
+          <div className="flex-1 min-w-0">
+            <label className="label text-right">{t('events.branch')}</label>
+            <select
+              className="input w-full"
+              value={filters.branchId}
+              onChange={(e) => setFilters((f) => ({ ...f, branchId: e.target.value }))}
+            >
+              <option value="">{t('events.filterAllBranches')}</option>
+              {branches.map((b) => (
+                <option key={b._id} value={b._id}>
+                  {b.name}
+                </option>
+              ))}
+            </select>
+          </div>
+          <div className="flex-1 min-w-0">
+            <label className="label text-right">{t('events.eventType')}</label>
+            <select
+              className="input w-full"
+              value={filters.eventType}
+              onChange={(e) => setFilters((f) => ({ ...f, eventType: e.target.value }))}
+            >
+              <option value="">{t('events.filterAllTypes')}</option>
+              {EVENT_TYPES.map((et) => (
+                <option key={et} value={et}>
+                  {t(`eventTypes.${et}`)}
+                </option>
+              ))}
+            </select>
+          </div>
+          <div className="flex-1 min-w-0">
+            <label className="label text-right">{t('events.status')}</label>
+            <select
+              className="input w-full"
+              value={filters.status}
+              onChange={(e) => setFilters((f) => ({ ...f, status: e.target.value }))}
+            >
+              <option value="">{t('events.filterAllStatuses')}</option>
+              {EVENT_STATUSES.map((s) => (
+                <option key={s} value={s}>
+                  {t(`eventStatus.${s}`)}
+                </option>
+              ))}
+            </select>
+          </div>
         </div>
         <div className="flex items-center gap-2 flex-shrink-0">
           <div className="flex gap-0.5 bg-gray-100 rounded-lg p-0.5">
@@ -191,6 +223,7 @@ export default function Events() {
         <div className="space-y-3">
           {sorted.map((e) => {
             const expanded = expandedIds.has(e._id);
+            const severity = eventSeverity(e);
             return (
               <div key={e._id} className="card !p-0 overflow-hidden">
                 <div
@@ -200,13 +233,23 @@ export default function Events() {
                   <div className="flex items-center gap-2 min-w-0">
                     <span className="text-gray-400 text-xs flex-shrink-0 w-3">{expanded ? '▲' : '▼'}</span>
                     <div className="min-w-0">
-                      <Link
-                        to={`/events/${e._id}`}
-                        className="font-medium text-gray-800 hover:text-primary"
-                        onClick={(ev) => ev.stopPropagation()}
-                      >
-                        {e.title}
-                      </Link>
+                      <div className="flex items-center gap-1.5">
+                        <Link
+                          to={`/events/${e._id}`}
+                          className="font-medium text-gray-800 hover:text-primary"
+                          onClick={(ev) => ev.stopPropagation()}
+                        >
+                          {e.title}
+                        </Link>
+                        {severity && (
+                          <span
+                            className={severity === 'overdue' ? 'text-red-500' : 'text-amber-500'}
+                            title={t(severity === 'overdue' ? 'events.taskOverdue' : 'events.taskUpcoming')}
+                          >
+                            <AlertIcon className="w-4 h-4" />
+                          </span>
+                        )}
+                      </div>
                       <p className="text-xs text-gray-500 mt-0.5 truncate">
                         {branchName(e)} · {t(`eventTypes.${e.eventType}`)} · {t('events.eventDate')}: {formatDate(e.eventDate)} ·{' '}
                         {t('events.prepareDate')}: {formatDate(e.prepareDate)}
