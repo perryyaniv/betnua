@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { getEvents, createEvent, deleteEvent, updateTask } from '../api/events';
+import { getEvents, createEvent, deleteEvent, addTask, updateTask } from '../api/events';
 import { getBranches } from '../api/branches';
 import { getSettings } from '../api/settings';
 import { getUsers } from '../api/users';
@@ -31,6 +31,14 @@ function AlertIcon({ className = 'w-4 h-4' }: { className?: string }) {
   );
 }
 
+function XIcon({ className = 'w-4 h-4' }: { className?: string }) {
+  return (
+    <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+    </svg>
+  );
+}
+
 export default function Events() {
   const { t } = useTranslation();
   const { user } = useAuth();
@@ -44,6 +52,7 @@ export default function Events() {
   const [filters, setFilters] = useState({ branchId: '', eventType: '', status: '' });
   const [viewMode, setViewMode] = useState<'cards' | 'table'>('cards');
   const [expandedIds, setExpandedIds] = useState<Set<string>>(new Set());
+  const [newTaskTitles, setNewTaskTitles] = useState<Record<string, string>>({});
   const [addModal, setAddModal] = useState(false);
   const [form, setForm] = useState(emptyForm);
   const [saving, setSaving] = useState(false);
@@ -107,6 +116,14 @@ export default function Events() {
     const nextStatus = task.status === 'הושלם' ? 'לביצוע' : 'הושלם';
     const updated = await updateTask(eventId, task._id, { status: nextStatus });
     setEvents((prev) => prev.map((e) => (e._id === eventId ? updated : e)));
+  };
+
+  const handleAddTask = async (eventId: string) => {
+    const title = (newTaskTitles[eventId] || '').trim();
+    if (!title) return;
+    const updated = await addTask(eventId, { title });
+    setEvents((prev) => prev.map((e) => (e._id === eventId ? updated : e)));
+    setNewTaskTitles((prev) => ({ ...prev, [eventId]: '' }));
   };
 
   const branchName = (e: StudioEvent) => {
@@ -215,61 +232,59 @@ export default function Events() {
             const expanded = expandedIds.has(e._id);
             const severity = eventSeverity(e);
             return (
-              <div key={e._id} className="card !p-0 overflow-hidden">
-                <div
-                  className="flex items-center justify-between gap-3 p-4 cursor-pointer"
-                  onClick={() => toggleExpanded(e._id)}
-                >
-                  <div className="flex items-center gap-2 min-w-0">
-                    <span className="text-gray-400 text-xs flex-shrink-0 w-3">{expanded ? '▲' : '▼'}</span>
-                    <div className="min-w-0">
-                      <div className="flex items-center gap-1.5">
-                        <Link
-                          to={`/events/${e._id}`}
-                          className="font-medium text-gray-800 hover:text-primary"
-                          onClick={(ev) => ev.stopPropagation()}
+              <div
+                key={e._id}
+                className="rounded-md border border-gray-200 bg-white p-2 cursor-pointer"
+                onClick={() => toggleExpanded(e._id)}
+              >
+                <div className="flex items-center gap-2">
+                  {canWrite && (
+                    <button
+                      type="button"
+                      className="text-gray-400 hover:text-red-500 flex-shrink-0"
+                      onClick={(ev) => {
+                        ev.stopPropagation();
+                        handleDelete(e._id);
+                      }}
+                      aria-label={t('common.delete')}
+                    >
+                      <XIcon className="w-4 h-4" />
+                    </button>
+                  )}
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-1.5">
+                      <Link
+                        to={`/events/${e._id}`}
+                        className="text-sm font-semibold text-gray-800 hover:text-primary"
+                        onClick={(ev) => ev.stopPropagation()}
+                      >
+                        {e.title}
+                      </Link>
+                      {severity && (
+                        <span
+                          className={severity === 'overdue' ? 'text-red-500' : 'text-amber-500'}
+                          title={t(severity === 'overdue' ? 'events.taskOverdue' : 'events.taskUpcoming')}
                         >
-                          {e.title}
-                        </Link>
-                        {severity && (
-                          <span
-                            className={severity === 'overdue' ? 'text-red-500' : 'text-amber-500'}
-                            title={t(severity === 'overdue' ? 'events.taskOverdue' : 'events.taskUpcoming')}
-                          >
-                            <AlertIcon className="w-4 h-4" />
-                          </span>
-                        )}
-                      </div>
-                      <p className="text-xs text-gray-500 mt-0.5 truncate">
-                        {branchName(e)} · {t(`eventTypes.${e.eventType}`)} · {t('events.eventDate')}: {formatDate(e.eventDate)} ·{' '}
-                        {t('events.prepareDate')}: {formatDate(e.prepareDate)}
-                      </p>
+                          <AlertIcon className="w-4 h-4" />
+                        </span>
+                      )}
                     </div>
+                    <p className="text-xs text-gray-500 truncate">
+                      {branchName(e)} · {t(`eventTypes.${e.eventType}`)} · {t('events.eventDate')}: {formatDate(e.eventDate)}
+                    </p>
                   </div>
-                  <div className="flex items-center gap-2 flex-shrink-0" onClick={(ev) => ev.stopPropagation()}>
-                    <Badge label={t(`eventStatus.${e.status}`)} color={EVENT_STATUS_COLORS[e.status]} />
-                    {canWrite && (
-                      <button className="text-xs text-red-500" onClick={() => handleDelete(e._id)}>
-                        {t('common.delete')}
-                      </button>
-                    )}
-                  </div>
+                  <Badge label={t(`eventStatus.${e.status}`)} color={EVENT_STATUS_COLORS[e.status]} />
                 </div>
                 {expanded && (
-                  <div className="border-t border-gray-100 divide-y divide-gray-100">
+                  <div className="mt-2 pt-2 border-t border-gray-100 space-y-1.5" onClick={(ev) => ev.stopPropagation()}>
                     {e.tasks.length === 0 ? (
-                      <p className="text-sm text-gray-400 px-4 py-3">{t('common.noData')}</p>
+                      <p className="text-sm text-gray-400">{t('common.noData')}</p>
                     ) : (
                       e.tasks.map((task) => {
                         const urgency = taskUrgency(task);
                         const done = task.status === 'הושלם';
                         return (
-                          <div
-                            key={task._id}
-                            className={`flex items-center gap-3 px-4 py-2.5 ${
-                              urgency === 'overdue' ? 'bg-red-50' : urgency === 'upcoming' ? 'bg-amber-50' : ''
-                            }`}
-                          >
+                          <div key={task._id} className="flex items-center gap-2">
                             <input
                               type="checkbox"
                               className="w-4 h-4 accent-primary flex-shrink-0"
@@ -278,20 +293,22 @@ export default function Events() {
                               onChange={() => handleToggleTask(e._id, task)}
                             />
                             <div className="flex-1 min-w-0">
-                              <p className={`text-sm ${done ? 'text-gray-400 line-through' : 'text-gray-800'}`}>{task.title}</p>
                               <p
-                                className={`text-xs ${
-                                  urgency === 'overdue'
-                                    ? 'text-red-600 font-semibold'
-                                    : urgency === 'upcoming'
-                                      ? 'text-amber-700 font-medium'
-                                      : 'text-gray-500'
+                                className={`text-sm ${
+                                  done
+                                    ? 'text-gray-400 line-through'
+                                    : urgency === 'overdue'
+                                      ? 'text-red-600 font-semibold'
+                                      : urgency === 'upcoming'
+                                        ? 'text-orange-600 font-semibold'
+                                        : 'text-gray-800'
                                 }`}
                               >
+                                {task.title}
+                              </p>
+                              <p className="text-xs text-gray-500">
                                 {t('events.assignee')}: {assigneeName(task.assigneeId)}
                                 {task.dueDate ? ` · ${t('events.dueDate')}: ${formatDate(task.dueDate)}` : ''}
-                                {urgency === 'overdue' ? ` · ${t('events.taskOverdue')}` : ''}
-                                {urgency === 'upcoming' ? ` · ${t('events.taskUpcoming')}` : ''}
                               </p>
                             </div>
                             {!done && task.status !== 'לביצוע' && (
@@ -300,6 +317,23 @@ export default function Events() {
                           </div>
                         );
                       })
+                    )}
+                    {canWrite && (
+                      <div className="flex gap-2 pt-1">
+                        <input
+                          type="text"
+                          className="input flex-1 text-sm"
+                          placeholder={t('events.taskTitle')}
+                          value={newTaskTitles[e._id] || ''}
+                          onChange={(ev) => setNewTaskTitles((prev) => ({ ...prev, [e._id]: ev.target.value }))}
+                          onKeyDown={(ev) => {
+                            if (ev.key === 'Enter') handleAddTask(e._id);
+                          }}
+                        />
+                        <Button size="sm" onClick={() => handleAddTask(e._id)} disabled={!(newTaskTitles[e._id] || '').trim()}>
+                          + {t('events.addTask')}
+                        </Button>
+                      </div>
                     )}
                   </div>
                 )}

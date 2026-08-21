@@ -77,13 +77,13 @@ export default function Dashboard() {
   return (
     <div className="space-y-6">
       <div className="grid grid-cols-2 gap-2">
-        <Card className={`text-center !p-3 ${overdueCount > 0 ? 'bg-red-50 border-red-200 border-r-red-500' : ''}`}>
-          <p className={`text-2xl font-bold leading-none ${overdueCount > 0 ? 'text-red-600' : 'text-primary'}`}>{overdueCount}</p>
-          <p className="text-xs text-gray-500 mt-1">{t('dashboard.tasksDue')}</p>
+        <Card className={`text-center !py-1.5 !px-2 ${overdueCount > 0 ? 'bg-red-50 border-red-200 border-r-red-500' : ''}`}>
+          <p className={`text-xl font-bold leading-none ${overdueCount > 0 ? 'text-red-600' : 'text-primary'}`}>{overdueCount}</p>
+          <p className="text-[11px] text-gray-500 mt-0.5 leading-tight">{t('dashboard.tasksDue')}</p>
         </Card>
-        <Card className={`text-center !p-3 ${upcomingCount > 0 ? 'bg-amber-50 border-amber-200 border-r-amber-500' : ''}`}>
-          <p className={`text-2xl font-bold leading-none ${upcomingCount > 0 ? 'text-amber-600' : 'text-primary'}`}>{upcomingCount}</p>
-          <p className="text-xs text-gray-500 mt-1">{t('dashboard.tasksAlert')}</p>
+        <Card className={`text-center !py-1.5 !px-2 ${upcomingCount > 0 ? 'bg-amber-50 border-amber-200 border-r-amber-500' : ''}`}>
+          <p className={`text-xl font-bold leading-none ${upcomingCount > 0 ? 'text-amber-600' : 'text-primary'}`}>{upcomingCount}</p>
+          <p className="text-[11px] text-gray-500 mt-0.5 leading-tight">{t('dashboard.tasksAlert')}</p>
         </Card>
       </div>
 
@@ -132,9 +132,9 @@ export default function Dashboard() {
         <h2 className="section-title">{t('dashboard.coursesPerBranch')}</h2>
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
           {branchKpis.map((row) => (
-            <Card key={row.label} className="text-center !p-2">
-              <p className="text-xl font-bold leading-none text-primary">{row.count}</p>
-              <p className="text-sm text-gray-600 mt-1">{row.label}</p>
+            <Card key={row.label} className="text-center !py-1.5 !px-2">
+              <p className="text-lg font-bold leading-none text-primary">{row.count}</p>
+              <p className="text-[11px] text-gray-600 mt-0.5 leading-tight">{row.label}</p>
             </Card>
           ))}
         </div>
