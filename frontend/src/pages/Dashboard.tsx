@@ -9,9 +9,7 @@ import { StudioEvent, Branch, Course, AppSettings, EventTask } from '../types';
 import { daysUntil, isWithinThreshold } from '../utils/alerts';
 import { formatDate } from '../utils/date';
 import Card from '../components/ui/Card';
-import Badge from '../components/ui/Badge';
 import Spinner from '../components/ui/Spinner';
-import { TASK_STATUS_COLORS } from '../utils/statusColors';
 
 const OPEN_EVENT_STATUSES = ['מתוכנן', 'בהכנה'];
 const OPEN_TASK_STATUSES = ['לביצוע', 'בתהליך'];
@@ -120,7 +118,6 @@ export default function Dashboard() {
                       {urgency === 'upcoming' ? ` · ${t('events.taskUpcoming')}` : ''}
                     </p>
                   </Link>
-                  <Badge label={task.status} color={TASK_STATUS_COLORS[task.status]} />
                 </Card>
               );
             })}

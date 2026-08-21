@@ -8,9 +8,9 @@ import { getUsers } from '../api/users';
 import { StudioEvent, Branch, AppSettings, User, EventTask, EVENT_TYPES, EVENT_STATUSES } from '../types';
 import { useAuth } from '../contexts/AuthContext';
 import { hasWriteAccess } from '../utils/roles';
-import { formatDate } from '../utils/date';
+import { formatDate, toDateInputValue } from '../utils/date';
 import { daysUntil } from '../utils/alerts';
-import { EVENT_STATUS_COLORS, TASK_STATUS_COLORS } from '../utils/statusColors';
+import { EVENT_STATUS_COLORS } from '../utils/statusColors';
 import Button from '../components/ui/Button';
 import Modal from '../components/ui/Modal';
 import Badge from '../components/ui/Badge';
@@ -52,7 +52,8 @@ export default function Events() {
   const [filters, setFilters] = useState({ branchId: '', eventType: '', status: '' });
   const [viewMode, setViewMode] = useState<'cards' | 'table'>('cards');
   const [expandedIds, setExpandedIds] = useState<Set<string>>(new Set());
-  const [newTaskTitles, setNewTaskTitles] = useState<Record<string, string>>({});
+  const [addTaskEventId, setAddTaskEventId] = useState<string | null>(null);
+  const [newTaskForm, setNewTaskForm] = useState({ title: '', assigneeId: '', dueDate: '' });
   const [addModal, setAddModal] = useState(false);
   const [form, setForm] = useState(emptyForm);
   const [saving, setSaving] = useState(false);
@@ -118,12 +119,21 @@ export default function Events() {
     setEvents((prev) => prev.map((e) => (e._id === eventId ? updated : e)));
   };
 
-  const handleAddTask = async (eventId: string) => {
-    const title = (newTaskTitles[eventId] || '').trim();
-    if (!title) return;
-    const updated = await addTask(eventId, { title });
-    setEvents((prev) => prev.map((e) => (e._id === eventId ? updated : e)));
-    setNewTaskTitles((prev) => ({ ...prev, [eventId]: '' }));
+  const openAddTask = (eventId: string) => {
+    setNewTaskForm({ title: '', assigneeId: '', dueDate: '' });
+    setAddTaskEventId(eventId);
+  };
+
+  const handleAddTask = async () => {
+    const title = newTaskForm.title.trim();
+    if (!title || !addTaskEventId) return;
+    const updated = await addTask(addTaskEventId, {
+      title,
+      assigneeId: newTaskForm.assigneeId || null,
+      dueDate: newTaskForm.dueDate || null,
+    });
+    setEvents((prev) => prev.map((e) => (e._id === addTaskEventId ? updated : e)));
+    setAddTaskEventId(null);
   };
 
   const branchName = (e: StudioEvent) => {
@@ -311,26 +321,13 @@ export default function Events() {
                                 {task.dueDate ? ` · ${t('events.dueDate')}: ${formatDate(task.dueDate)}` : ''}
                               </p>
                             </div>
-                            {!done && task.status !== 'לביצוע' && (
-                              <Badge label={t(`taskStatus.${task.status}`)} color={TASK_STATUS_COLORS[task.status]} />
-                            )}
                           </div>
                         );
                       })
                     )}
                     {canWrite && (
-                      <div className="flex gap-2 pt-1">
-                        <input
-                          type="text"
-                          className="input flex-1 text-sm"
-                          placeholder={t('events.taskTitle')}
-                          value={newTaskTitles[e._id] || ''}
-                          onChange={(ev) => setNewTaskTitles((prev) => ({ ...prev, [e._id]: ev.target.value }))}
-                          onKeyDown={(ev) => {
-                            if (ev.key === 'Enter') handleAddTask(e._id);
-                          }}
-                        />
-                        <Button size="sm" onClick={() => handleAddTask(e._id)} disabled={!(newTaskTitles[e._id] || '').trim()}>
+                      <div className="pt-1">
+                        <Button size="sm" variant="secondary" onClick={() => openAddTask(e._id)}>
                           + {t('events.addTask')}
                         </Button>
                       </div>
@@ -438,6 +435,51 @@ export default function Events() {
               {t('common.cancel')}
             </Button>
             <Button loading={saving} onClick={handleCreate} disabled={!form.title || !form.eventDate || !form.prepareDate}>
+              {t('common.save')}
+            </Button>
+          </div>
+        </div>
+      </Modal>
+
+      <Modal open={!!addTaskEventId} onClose={() => setAddTaskEventId(null)} title={t('events.addTask')}>
+        <div className="space-y-4">
+          <div>
+            <label className="label">{t('events.taskTitle')}</label>
+            <input
+              className="input"
+              value={newTaskForm.title}
+              onChange={(ev) => setNewTaskForm((f) => ({ ...f, title: ev.target.value }))}
+            />
+          </div>
+          <div>
+            <label className="label">{t('events.assignee')}</label>
+            <select
+              className="input"
+              value={newTaskForm.assigneeId}
+              onChange={(ev) => setNewTaskForm((f) => ({ ...f, assigneeId: ev.target.value }))}
+            >
+              <option value="">—</option>
+              {users.map((u) => (
+                <option key={u._id} value={u._id}>
+                  {u.name}
+                </option>
+              ))}
+            </select>
+          </div>
+          <div>
+            <label className="label">{t('events.dueDate')}</label>
+            <input
+              type="date"
+              className="input"
+              value={toDateInputValue(newTaskForm.dueDate)}
+              onChange={(ev) => setNewTaskForm((f) => ({ ...f, dueDate: ev.target.value }))}
+            />
+          </div>
+          <div className="flex gap-3 justify-end">
+            <Button variant="secondary" onClick={() => setAddTaskEventId(null)}>
+              {t('common.cancel')}
+            </Button>
+            <Button onClick={handleAddTask} disabled={!newTaskForm.title.trim()}>
               {t('common.save')}
             </Button>
           </div>
