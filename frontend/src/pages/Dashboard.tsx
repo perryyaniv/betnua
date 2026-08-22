@@ -88,15 +88,15 @@ export default function Dashboard() {
   return (
     <div className="space-y-6">
       <div className="grid grid-cols-2 gap-2">
-        <Card className={`text-center !py-1.5 !px-2 ${overdueCount > 0 ? 'border-r-red-500' : ''}`}>
-          <p className={`text-2xl font-bold leading-none ${overdueCount > 0 ? 'text-red-600' : 'text-primary'}`}>{overdueCount}</p>
+        <Card className={`text-center !py-1.5 !px-2 ${overdueCount > 0 ? 'border-r-red-500' : 'border-r-green-500'}`}>
+          <p className={`text-2xl font-bold leading-none ${overdueCount > 0 ? 'text-red-600' : 'text-green-600'}`}>{overdueCount}</p>
           <p className="text-xs text-gray-500 mt-1 flex items-center justify-center gap-1">
             {overdueCount > 0 && <AlertIcon className="w-3.5 h-3.5 text-red-500" />}
             {t('dashboard.tasksDue')}
           </p>
         </Card>
-        <Card className={`text-center !py-1.5 !px-2 ${upcomingCount > 0 ? 'border-r-yellow-500' : ''}`}>
-          <p className={`text-2xl font-bold leading-none ${upcomingCount > 0 ? 'text-yellow-600' : 'text-primary'}`}>{upcomingCount}</p>
+        <Card className={`text-center !py-1.5 !px-2 ${upcomingCount > 0 ? 'border-r-yellow-500' : 'border-r-green-500'}`}>
+          <p className={`text-2xl font-bold leading-none ${upcomingCount > 0 ? 'text-yellow-600' : 'text-green-600'}`}>{upcomingCount}</p>
           <p className="text-xs text-gray-500 mt-1 flex items-center justify-center gap-1">
             {upcomingCount > 0 && <AlertIcon className="w-3.5 h-3.5 text-yellow-500" />}
             {t('dashboard.tasksAlert')}
@@ -115,7 +115,7 @@ export default function Dashboard() {
               return (
                 <Card
                   key={task._id}
-                  className={`flex items-center gap-3 ${
+                  className={`flex items-center gap-3 !py-2 !px-3 ${
                     urgency === 'overdue' ? 'border-r-red-500' : urgency === 'upcoming' ? 'border-r-yellow-500' : ''
                   }`}
                 >
