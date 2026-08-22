@@ -85,19 +85,27 @@ export default function Dashboard() {
   return (
     <div className="space-y-6">
       <div className="grid grid-cols-2 gap-2">
-        <Card className={`relative text-center !py-1.5 !px-2 ${overdueCount > 0 ? 'border-r-red-500' : 'border-r-green-500'}`}>
+        <Card className={`flex items-center gap-2 !py-1.5 !px-3 ${overdueCount > 0 ? 'border-r-red-500' : 'border-r-green-500'}`}>
+          <div className="flex-1 text-center">
+            <p className={`text-2xl font-bold leading-none ${overdueCount > 0 ? 'text-red-600' : 'text-green-600'}`}>{overdueCount}</p>
+            <p className="text-xs text-gray-500 mt-1">{t('dashboard.tasksDue')}</p>
+          </div>
           {overdueCount > 0 && (
-            <AlertIcon className="w-5 h-5 text-red-500 absolute right-2 top-1/2 -translate-y-1/2" />
+            <div className="flex-shrink-0 border-r border-gray-100 pr-2">
+              <AlertIcon className="w-6 h-6 text-red-500" />
+            </div>
           )}
-          <p className={`text-2xl font-bold leading-none ${overdueCount > 0 ? 'text-red-600' : 'text-green-600'}`}>{overdueCount}</p>
-          <p className="text-xs text-gray-500 mt-1">{t('dashboard.tasksDue')}</p>
         </Card>
-        <Card className={`relative text-center !py-1.5 !px-2 ${upcomingCount > 0 ? 'border-r-yellow-500' : 'border-r-green-500'}`}>
+        <Card className={`flex items-center gap-2 !py-1.5 !px-3 ${upcomingCount > 0 ? 'border-r-yellow-500' : 'border-r-green-500'}`}>
+          <div className="flex-1 text-center">
+            <p className={`text-2xl font-bold leading-none ${upcomingCount > 0 ? 'text-yellow-600' : 'text-green-600'}`}>{upcomingCount}</p>
+            <p className="text-xs text-gray-500 mt-1">{t('dashboard.tasksAlert')}</p>
+          </div>
           {upcomingCount > 0 && (
-            <AlertIcon className="w-5 h-5 text-yellow-500 absolute right-2 top-1/2 -translate-y-1/2" />
+            <div className="flex-shrink-0 border-r border-gray-100 pr-2">
+              <AlertIcon className="w-6 h-6 text-yellow-500" />
+            </div>
           )}
-          <p className={`text-2xl font-bold leading-none ${upcomingCount > 0 ? 'text-yellow-600' : 'text-green-600'}`}>{upcomingCount}</p>
-          <p className="text-xs text-gray-500 mt-1">{t('dashboard.tasksAlert')}</p>
         </Card>
       </div>
 
