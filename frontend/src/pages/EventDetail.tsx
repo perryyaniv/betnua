@@ -4,15 +4,13 @@ import { useTranslation } from 'react-i18next';
 import { getEvent, updateEvent, addTask, updateTask, deleteTask } from '../api/events';
 import { getUsers } from '../api/users';
 import { getSettings } from '../api/settings';
-import { StudioEvent, User, AppSettings, EVENT_STATUSES, TASK_STATUSES } from '../types';
+import { StudioEvent, User, AppSettings } from '../types';
 import { useAuth } from '../contexts/AuthContext';
 import { hasWriteAccess } from '../utils/roles';
 import { formatDate, toDateInputValue } from '../utils/date';
 import { daysUntil } from '../utils/alerts';
-import { EVENT_STATUS_COLORS, TASK_STATUS_COLORS } from '../utils/statusColors';
 import Card from '../components/ui/Card';
 import Button from '../components/ui/Button';
-import Badge from '../components/ui/Badge';
 import Spinner from '../components/ui/Spinner';
 
 const OPEN_TASK_STATUSES = ['לביצוע', 'בתהליך'];
@@ -47,8 +45,9 @@ export default function EventDetail() {
     return null;
   };
 
-  const handleStatusChange = async (status: string) => {
-    const updated = await updateEvent(event._id, { status } as never);
+  const handleToggleEventDone = async () => {
+    const nextStatus = event.status === 'הושלם' ? 'מתוכנן' : 'הושלם';
+    const updated = await updateEvent(event._id, { status: nextStatus } as never);
     setEvent(updated);
   };
 
@@ -63,8 +62,9 @@ export default function EventDetail() {
     setNewTask({ title: '', assigneeId: '', dueDate: '' });
   };
 
-  const handleTaskStatus = async (taskId: string, status: string) => {
-    const updated = await updateTask(event._id, taskId, { status });
+  const handleToggleTask = async (task: StudioEvent['tasks'][number]) => {
+    const nextStatus = task.status === 'הושלם' ? 'לביצוע' : 'הושלם';
+    const updated = await updateTask(event._id, task._id, { status: nextStatus });
     setEvent(updated);
   };
 
@@ -88,20 +88,19 @@ export default function EventDetail() {
       <Card>
         <div className="flex items-start justify-between flex-wrap gap-2">
           <div>
-            <h2 className="text-lg font-bold text-gray-800">{event.title}</h2>
+            <h2 className={`text-lg font-bold ${event.status === 'הושלם' ? 'text-green-600 line-through' : 'text-gray-800'}`}>{event.title}</h2>
             {event.description && <p className="text-sm text-gray-600 mt-1">{event.description}</p>}
           </div>
-          {canWrite ? (
-            <select className="input max-w-[160px]" value={event.status} onChange={(e) => handleStatusChange(e.target.value)}>
-              {EVENT_STATUSES.map((s) => (
-                <option key={s} value={s}>
-                  {t(`eventStatus.${s}`)}
-                </option>
-              ))}
-            </select>
-          ) : (
-            <Badge label={t(`eventStatus.${event.status}`)} color={EVENT_STATUS_COLORS[event.status]} />
-          )}
+          <label className="flex items-center gap-1.5 text-sm text-gray-600">
+            <input
+              type="checkbox"
+              className="w-4 h-4 accent-green-600"
+              checked={event.status === 'הושלם'}
+              disabled={!canWrite}
+              onChange={handleToggleEventDone}
+            />
+            {t('events.done')}
+          </label>
         </div>
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mt-4 text-sm">
           <div>
@@ -128,44 +127,43 @@ export default function EventDetail() {
         <div className="space-y-2">
           {event.tasks.map((task) => {
             const urgency = taskUrgency(task);
+            const done = task.status === 'הושלם';
             return (
             <Card
               key={task._id}
               className={`flex items-center justify-between gap-3 ${
-                urgency === 'overdue'
-                  ? 'border-red-300 border-r-red-500 bg-red-50'
-                  : urgency === 'upcoming'
-                    ? 'border-yellow-300 border-r-yellow-500 bg-yellow-50'
-                    : ''
+                done
+                  ? ''
+                  : urgency === 'overdue'
+                    ? 'border-red-300 border-r-red-500 bg-red-50'
+                    : urgency === 'upcoming'
+                      ? 'border-yellow-300 border-r-yellow-500 bg-yellow-50'
+                      : ''
               }`}
             >
-              <div>
-                <p className="font-medium text-gray-800">{task.title}</p>
-                <p className={`text-xs ${urgency === 'overdue' ? 'text-red-600 font-semibold' : urgency === 'upcoming' ? 'text-yellow-700 font-medium' : 'text-gray-500'}`}>
-                  {t('events.assignee')}: {assigneeName(task.assigneeId)}
-                  {task.dueDate ? ` · ${t('events.dueDate')}: ${formatDate(task.dueDate)}` : ''}
-                  {urgency === 'overdue' ? ` · ${t('events.taskOverdue')}` : ''}
-                  {urgency === 'upcoming' ? ` · ${t('events.taskUpcoming')}` : ''}
-                </p>
-              </div>
               <div className="flex items-center gap-2">
-                {canWrite ? (
-                  <select className="input max-w-[130px]" value={task.status} onChange={(e) => handleTaskStatus(task._id, e.target.value)}>
-                    {TASK_STATUSES.map((s) => (
-                      <option key={s} value={s}>
-                        {t(`taskStatus.${s}`)}
-                      </option>
-                    ))}
-                  </select>
-                ) : (
-                  <Badge label={t(`taskStatus.${task.status}`)} color={TASK_STATUS_COLORS[task.status]} />
-                )}
-                {canWrite && (
-                  <button className="text-xs text-red-500" onClick={() => handleDeleteTask(task._id)}>
-                    {t('common.delete')}
-                  </button>
-                )}
+                <input
+                  type="checkbox"
+                  className="w-4 h-4 accent-green-600 flex-shrink-0"
+                  checked={done}
+                  disabled={!canWrite}
+                  onChange={() => handleToggleTask(task)}
+                />
+                <div>
+                  <p className={`font-medium ${done ? 'text-green-600 line-through' : 'text-gray-800'}`}>{task.title}</p>
+                  <p className={`text-xs ${done ? 'text-gray-500' : urgency === 'overdue' ? 'text-red-600 font-semibold' : urgency === 'upcoming' ? 'text-yellow-700 font-medium' : 'text-gray-500'}`}>
+                    {t('events.assignee')}: {assigneeName(task.assigneeId)}
+                    {task.dueDate ? ` · ${t('events.dueDate')}: ${formatDate(task.dueDate)}` : ''}
+                    {!done && urgency === 'overdue' ? ` · ${t('events.taskOverdue')}` : ''}
+                    {!done && urgency === 'upcoming' ? ` · ${t('events.taskUpcoming')}` : ''}
+                  </p>
+                </div>
               </div>
+              {canWrite && (
+                <button className="text-xs text-red-500" onClick={() => handleDeleteTask(task._id)}>
+                  {t('common.delete')}
+                </button>
+              )}
             </Card>
             );
           })}

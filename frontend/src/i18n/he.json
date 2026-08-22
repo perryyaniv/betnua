@@ -155,7 +155,9 @@
     "filterAllTypes": "הכל",
     "filterAllStatuses": "הכל",
     "tableToggle": "טבלה",
-    "searchPlaceholder": "חיפוש לפי כותרת, סניף, סוג, סטטוס או משימה",
+    "done": "בוצע",
+    "showCompleted": "הצג גם שהושלמו",
+    "searchPlaceholder": "חיפוש לפי כותרת, סניף, סוג או משימה",
     "deleteConfirm": "האם אתה בטוח שברצונך למחוק אירוע זה?"
   },
   "eventTypes": {

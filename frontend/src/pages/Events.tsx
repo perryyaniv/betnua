@@ -5,15 +5,13 @@ import { getEvents, createEvent, updateEvent, deleteEvent, addTask, updateTask, 
 import { getBranches } from '../api/branches';
 import { getSettings } from '../api/settings';
 import { getUsers } from '../api/users';
-import { StudioEvent, Branch, AppSettings, User, EventTask, EVENT_TYPES, EVENT_STATUSES } from '../types';
+import { StudioEvent, Branch, AppSettings, User, EventTask, EVENT_TYPES } from '../types';
 import { useAuth } from '../contexts/AuthContext';
 import { hasWriteAccess } from '../utils/roles';
 import { formatDate, toDateInputValue } from '../utils/date';
 import { daysUntil } from '../utils/alerts';
-import { EVENT_STATUS_COLORS, TASK_STATUS_COLORS } from '../utils/statusColors';
 import Button from '../components/ui/Button';
 import Modal from '../components/ui/Modal';
-import Badge from '../components/ui/Badge';
 import Spinner from '../components/ui/Spinner';
 
 const emptyForm = { title: '', description: '', branchId: '', eventType: 'אחר', eventDate: '', prepareDate: '' };
@@ -67,7 +65,8 @@ export default function Events() {
   const [settings, setSettings] = useState<AppSettings | null>(null);
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
-  const [filters, setFilters] = useState({ branchId: '', eventType: '', status: '' });
+  const [filters, setFilters] = useState({ branchId: '', eventType: '' });
+  const [showCompleted, setShowCompleted] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [viewMode, setViewMode] = useState<'cards' | 'table'>('cards');
   const [expandedIds, setExpandedIds] = useState<Set<string>>(new Set());
@@ -97,7 +96,7 @@ export default function Events() {
         ? branches.find((b) => b._id === e.branchId)?.name
         : e.branchId.name
       : t('events.studioWide');
-    const haystack = [e.title, branch ?? '', t(`eventTypes.${e.eventType}`), t(`eventStatus.${e.status}`), ...e.tasks.map((tk) => tk.title)];
+    const haystack = [e.title, branch ?? '', t(`eventTypes.${e.eventType}`), ...e.tasks.map((tk) => tk.title)];
     return haystack.some((h) => h.toLowerCase().includes(q));
   };
 
@@ -107,10 +106,10 @@ export default function Events() {
         (e) =>
           (!filters.branchId || idOf(e.branchId) === filters.branchId) &&
           (!filters.eventType || e.eventType === filters.eventType) &&
-          (!filters.status || e.status === filters.status) &&
+          (showCompleted || e.status !== 'הושלם') &&
           matchesSearch(e, searchQuery)
       ),
-    [events, filters, searchQuery, branches]
+    [events, filters, showCompleted, searchQuery, branches]
   );
 
   const sorted = useMemo(
@@ -167,6 +166,13 @@ export default function Events() {
     await deleteEvent(id);
     setEvents((prev) => prev.filter((e) => e._id !== id));
     closeModal();
+  };
+
+  const handleToggleEventDone = async (ev: StudioEvent) => {
+    const nextStatus = ev.status === 'הושלם' ? 'מתוכנן' : 'הושלם';
+    const updated = await updateEvent(ev._id, { status: nextStatus } as never);
+    setEvents((prev) => prev.map((e) => (e._id === updated._id ? updated : e)));
+    if (editing && editing._id === updated._id) setEditing(updated);
   };
 
   const toggleExpanded = (id: string) => {
@@ -281,21 +287,15 @@ export default function Events() {
               ))}
             </select>
           </div>
-          <div className="flex-1 min-w-0">
-            <label className="label text-right">{t('events.status')}</label>
-            <select
-              className="input w-full"
-              value={filters.status}
-              onChange={(e) => setFilters((f) => ({ ...f, status: e.target.value }))}
-            >
-              <option value="">{t('events.filterAllStatuses')}</option>
-              {EVENT_STATUSES.map((s) => (
-                <option key={s} value={s}>
-                  {t(`eventStatus.${s}`)}
-                </option>
-              ))}
-            </select>
-          </div>
+          <label className="flex items-center gap-1.5 text-sm text-gray-600 flex-shrink-0 self-end pb-2 whitespace-nowrap">
+            <input
+              type="checkbox"
+              className="w-4 h-4 accent-primary"
+              checked={showCompleted}
+              onChange={(e) => setShowCompleted(e.target.checked)}
+            />
+            {t('events.showCompleted')}
+          </label>
         </div>
         <div className="flex items-center gap-2 flex-shrink-0">
           <button
@@ -321,6 +321,7 @@ export default function Events() {
           {sorted.map((e) => {
             const expanded = expandedIds.has(e._id);
             const severity = eventSeverity(e);
+            const eventDone = e.status === 'הושלם';
             return (
               <div
                 key={e._id}
@@ -328,6 +329,16 @@ export default function Events() {
                 onClick={() => toggleExpanded(e._id)}
               >
                 <div className="flex items-center gap-2">
+                  {canWrite && (
+                    <input
+                      type="checkbox"
+                      className="w-4 h-4 accent-green-600 flex-shrink-0"
+                      checked={eventDone}
+                      onClick={(ev) => ev.stopPropagation()}
+                      onChange={() => handleToggleEventDone(e)}
+                      aria-label={t('events.done')}
+                    />
+                  )}
                   <span className="flex-shrink-0" title={severity ? t(severity === 'overdue' ? 'events.taskOverdue' : 'events.taskUpcoming') : undefined}>
                     {severity ? (
                       <AlertIcon className={`w-5 h-5 ${severity === 'overdue' ? 'text-red-500' : 'text-yellow-500'}`} />
@@ -336,14 +347,13 @@ export default function Events() {
                     )}
                   </span>
                   <div className="flex-1 min-w-0">
-                    <p className="text-sm font-semibold text-gray-800">{e.title}</p>
+                    <p className={`text-sm font-semibold ${eventDone ? 'text-green-600 line-through' : 'text-gray-800'}`}>{e.title}</p>
                     <p className="text-xs text-gray-500">{branchName(e)}</p>
                     <p className="text-xs text-gray-500">{t(`eventTypes.${e.eventType}`)}</p>
                     <p className="text-xs text-gray-500">
                       {t('events.eventDate')}: {formatDate(e.eventDate)}
                     </p>
                   </div>
-                  <Badge label={t(`eventStatus.${e.status}`)} color={EVENT_STATUS_COLORS[e.status]} />
                   {canWrite && (
                     <button
                       type="button"
@@ -370,7 +380,7 @@ export default function Events() {
                           <div key={task._id} className="flex items-center gap-2">
                             <input
                               type="checkbox"
-                              className="w-4 h-4 accent-primary flex-shrink-0"
+                              className="w-4 h-4 accent-green-600 flex-shrink-0"
                               checked={done}
                               disabled={!canWrite}
                               onChange={() => handleToggleTask(e._id, task)}
@@ -379,7 +389,7 @@ export default function Events() {
                               <p
                                 className={`text-sm flex items-center gap-1 ${
                                   done
-                                    ? 'text-gray-400 line-through'
+                                    ? 'text-green-600 line-through'
                                     : urgency === 'overdue'
                                       ? 'text-red-600 font-semibold'
                                       : urgency === 'upcoming'
@@ -414,7 +424,7 @@ export default function Events() {
                 <th className="px-3 py-2 text-right text-xs font-semibold text-gray-500 uppercase">{t('events.eventType')}</th>
                 <th className="px-3 py-2 text-right text-xs font-semibold text-gray-500 uppercase">{t('events.eventDate')}</th>
                 <th className="px-3 py-2 text-right text-xs font-semibold text-gray-500 uppercase">{t('events.prepareDate')}</th>
-                <th className="px-3 py-2 text-right text-xs font-semibold text-gray-500 uppercase">{t('events.status')}</th>
+                <th className="px-3 py-2 text-right text-xs font-semibold text-gray-500 uppercase">{t('events.done')}</th>
                 {canWrite && <th className="px-3 py-2 text-right text-xs font-semibold text-gray-500 uppercase">{t('common.actions')}</th>}
               </tr>
             </thead>
@@ -431,7 +441,14 @@ export default function Events() {
                   <td className="px-3 py-2 text-gray-600">{formatDate(e.eventDate)}</td>
                   <td className="px-3 py-2 text-gray-600">{formatDate(e.prepareDate)}</td>
                   <td className="px-3 py-2">
-                    <Badge label={t(`eventStatus.${e.status}`)} color={EVENT_STATUS_COLORS[e.status]} />
+                    <input
+                      type="checkbox"
+                      className="w-4 h-4 accent-green-600"
+                      checked={e.status === 'הושלם'}
+                      disabled={!canWrite}
+                      onChange={() => handleToggleEventDone(e)}
+                      aria-label={t('events.done')}
+                    />
                   </td>
                   {canWrite && (
                     <td className="px-3 py-2">
@@ -506,14 +523,11 @@ export default function Events() {
                   <div key={task._id} className="flex items-center gap-2 bg-gray-50 rounded px-3 py-1.5">
                     <input
                       type="checkbox"
-                      className="w-4 h-4 accent-primary flex-shrink-0"
+                      className="w-4 h-4 accent-green-600 flex-shrink-0"
                       checked={done}
                       onChange={() => handleToggleTask(editing._id, task)}
                     />
-                    <span className={`flex-1 text-sm ${done ? 'text-gray-400 line-through' : 'text-gray-800'}`}>{task.title}</span>
-                    {!done && (
-                      <Badge label={t(`taskStatus.${task.status}`)} color={TASK_STATUS_COLORS[task.status]} />
-                    )}
+                    <span className={`flex-1 text-sm ${done ? 'text-green-600 line-through' : 'text-gray-800'}`}>{task.title}</span>
                     <button className="text-xs text-red-500" onClick={() => handleDeleteTask(task._id)}>
                       {t('common.delete')}
                     </button>
