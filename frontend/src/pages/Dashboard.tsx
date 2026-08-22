@@ -77,30 +77,27 @@ export default function Dashboard() {
   const overdueCount = tasksDue.filter(({ task }) => taskUrgency(task) === 'overdue').length;
   const upcomingCount = tasksDue.filter(({ task }) => taskUrgency(task) === 'upcoming').length;
 
-  const branchKpis = [
-    { label: t('dashboard.total'), count: courses.length },
-    ...branches.map((b) => ({
-      label: b.name,
-      count: courses.filter((c) => (typeof c.branchId === 'string' ? c.branchId : c.branchId._id) === b._id).length,
-    })),
-  ];
+  const branchKpis = branches.map((b) => ({
+    label: b.name,
+    count: courses.filter((c) => (typeof c.branchId === 'string' ? c.branchId : c.branchId._id) === b._id).length,
+  }));
 
   return (
     <div className="space-y-6">
       <div className="grid grid-cols-2 gap-2">
-        <Card className={`text-center !py-1.5 !px-2 ${overdueCount > 0 ? 'border-r-red-500' : 'border-r-green-500'}`}>
+        <Card className={`relative text-center !py-1.5 !px-2 ${overdueCount > 0 ? 'border-r-red-500' : 'border-r-green-500'}`}>
+          {overdueCount > 0 && (
+            <AlertIcon className="w-5 h-5 text-red-500 absolute right-2 top-1/2 -translate-y-1/2" />
+          )}
           <p className={`text-2xl font-bold leading-none ${overdueCount > 0 ? 'text-red-600' : 'text-green-600'}`}>{overdueCount}</p>
-          <p className="text-xs text-gray-500 mt-1 flex items-center justify-center gap-1">
-            {overdueCount > 0 && <AlertIcon className="w-3.5 h-3.5 text-red-500" />}
-            {t('dashboard.tasksDue')}
-          </p>
+          <p className="text-xs text-gray-500 mt-1">{t('dashboard.tasksDue')}</p>
         </Card>
-        <Card className={`text-center !py-1.5 !px-2 ${upcomingCount > 0 ? 'border-r-yellow-500' : 'border-r-green-500'}`}>
+        <Card className={`relative text-center !py-1.5 !px-2 ${upcomingCount > 0 ? 'border-r-yellow-500' : 'border-r-green-500'}`}>
+          {upcomingCount > 0 && (
+            <AlertIcon className="w-5 h-5 text-yellow-500 absolute right-2 top-1/2 -translate-y-1/2" />
+          )}
           <p className={`text-2xl font-bold leading-none ${upcomingCount > 0 ? 'text-yellow-600' : 'text-green-600'}`}>{upcomingCount}</p>
-          <p className="text-xs text-gray-500 mt-1 flex items-center justify-center gap-1">
-            {upcomingCount > 0 && <AlertIcon className="w-3.5 h-3.5 text-yellow-500" />}
-            {t('dashboard.tasksAlert')}
-          </p>
+          <p className="text-xs text-gray-500 mt-1">{t('dashboard.tasksAlert')}</p>
         </Card>
       </div>
 
@@ -148,7 +145,11 @@ export default function Dashboard() {
 
       <div>
         <h2 className="section-title">{t('dashboard.coursesPerBranch')}</h2>
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+        <Card className="text-center !py-1.5 !px-2 mb-3">
+          <p className="text-xl font-bold leading-none text-primary">{courses.length}</p>
+          <p className="text-xs text-gray-600 mt-1">{t('dashboard.total')}</p>
+        </Card>
+        <div className="grid grid-cols-3 gap-3">
           {branchKpis.map((row) => (
             <Card key={row.label} className="text-center !py-1.5 !px-2">
               <p className="text-xl font-bold leading-none text-primary">{row.count}</p>
