@@ -304,16 +304,17 @@ export default function Events() {
                             />
                             <div className="flex-1 min-w-0">
                               <p
-                                className={`text-sm ${
+                                className={`text-sm flex items-center gap-1 ${
                                   done
                                     ? 'text-gray-400 line-through'
                                     : urgency === 'overdue'
                                       ? 'text-red-600 font-semibold'
                                       : urgency === 'upcoming'
-                                        ? 'text-orange-600 font-semibold'
+                                        ? 'text-amber-600 font-semibold'
                                         : 'text-gray-800'
                                 }`}
                               >
+                                {!done && urgency && <AlertIcon className="w-3.5 h-3.5 flex-shrink-0" />}
                                 {task.title}
                               </p>
                               <p className="text-xs text-gray-500">

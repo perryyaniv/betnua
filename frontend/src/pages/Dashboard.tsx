@@ -122,10 +122,11 @@ export default function Dashboard() {
                   />
                   <Link to={`/events/${event._id}`} className="flex-1 min-w-0 hover:opacity-80">
                     <p
-                      className={`font-medium ${
-                        urgency === 'overdue' ? 'text-red-600 font-semibold' : urgency === 'upcoming' ? 'text-orange-600 font-semibold' : 'text-gray-800'
+                      className={`font-medium flex items-center gap-1 ${
+                        urgency === 'overdue' ? 'text-red-600 font-semibold' : urgency === 'upcoming' ? 'text-amber-600 font-semibold' : 'text-gray-800'
                       }`}
                     >
+                      {urgency && <AlertIcon className="w-3.5 h-3.5 flex-shrink-0" />}
                       {task.title}
                     </p>
                     <p className="text-xs text-gray-500">
