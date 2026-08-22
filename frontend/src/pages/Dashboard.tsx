@@ -84,7 +84,11 @@ export default function Dashboard() {
 
   return (
     <div className="space-y-6">
-      <div className="grid grid-cols-2 gap-2">
+      <div className="grid grid-cols-3 gap-2">
+        <Card className="text-center !py-1.5 !px-3">
+          <p className="text-2xl font-bold leading-none text-primary">{events.length}</p>
+          <p className="text-xs text-gray-500 mt-1">{t('dashboard.totalEvents')}</p>
+        </Card>
         <Card className={`flex items-center gap-2 !py-1.5 !px-3 ${overdueCount > 0 ? 'border-r-red-500' : 'border-r-green-500'}`}>
           <div className="flex-1 text-center">
             <p className={`text-2xl font-bold leading-none ${overdueCount > 0 ? 'text-red-600' : 'text-green-600'}`}>{overdueCount}</p>

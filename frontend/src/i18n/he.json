@@ -40,6 +40,7 @@
   },
   "dashboard": {
     "title": "בית",
+    "totalEvents": "סה\"כ אירועים",
     "tasksDue": "משימות דחופות",
     "tasksAlert": "משימות בהתראה",
     "coursesPerBranch": "חוגים לפי סניף",
