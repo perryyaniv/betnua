@@ -156,7 +156,7 @@
     "filterAllStatuses": "הכל",
     "tableToggle": "טבלה",
     "done": "בוצע",
-    "showCompleted": "הצג גם שהושלמו",
+    "notDone": "לא הושלם",
     "searchPlaceholder": "חיפוש לפי כותרת, סניף, סוג או משימה",
     "deleteConfirm": "האם אתה בטוח שברצונך למחוק אירוע זה?"
   },

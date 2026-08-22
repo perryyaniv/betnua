@@ -66,7 +66,7 @@ export default function Events() {
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
   const [filters, setFilters] = useState({ branchId: '', eventType: '' });
-  const [showCompleted, setShowCompleted] = useState(false);
+  const [statusFilter, setStatusFilter] = useState<'' | 'done' | 'notDone'>('notDone');
   const [searchQuery, setSearchQuery] = useState('');
   const [viewMode, setViewMode] = useState<'cards' | 'table'>('cards');
   const [expandedIds, setExpandedIds] = useState<Set<string>>(new Set());
@@ -106,10 +106,10 @@ export default function Events() {
         (e) =>
           (!filters.branchId || idOf(e.branchId) === filters.branchId) &&
           (!filters.eventType || e.eventType === filters.eventType) &&
-          (showCompleted || e.status !== 'הושלם') &&
+          (statusFilter === 'done' ? e.status === 'הושלם' : statusFilter === 'notDone' ? e.status !== 'הושלם' : true) &&
           matchesSearch(e, searchQuery)
       ),
-    [events, filters, showCompleted, searchQuery, branches]
+    [events, filters, statusFilter, searchQuery, branches]
   );
 
   const sorted = useMemo(
@@ -287,15 +287,18 @@ export default function Events() {
               ))}
             </select>
           </div>
-          <label className="flex items-center gap-1.5 text-sm text-gray-600 flex-shrink-0 self-end pb-2 whitespace-nowrap">
-            <input
-              type="checkbox"
-              className="w-4 h-4 accent-primary"
-              checked={showCompleted}
-              onChange={(e) => setShowCompleted(e.target.checked)}
-            />
-            {t('events.showCompleted')}
-          </label>
+          <div className="flex-1 min-w-0">
+            <label className="label text-right">{t('events.status')}</label>
+            <select
+              className="input w-full"
+              value={statusFilter}
+              onChange={(e) => setStatusFilter(e.target.value as '' | 'done' | 'notDone')}
+            >
+              <option value="">{t('events.filterAllStatuses')}</option>
+              <option value="done">{t('eventStatus.הושלם')}</option>
+              <option value="notDone">{t('events.notDone')}</option>
+            </select>
+          </div>
         </div>
         <div className="flex items-center gap-2 flex-shrink-0">
           <button
