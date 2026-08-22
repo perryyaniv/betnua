@@ -130,8 +130,8 @@ export default function Dashboard() {
                     onChange={() => handleToggleTask(event._id, task)}
                   />
                   <Link to={`/events/${event._id}`} className="flex-1 min-w-0 hover:opacity-80">
-                    <p className="font-medium text-gray-800 truncate">{task.title}</p>
-                    <p className={`text-xs truncate ${urgency === 'overdue' ? 'text-red-600 font-semibold' : urgency === 'upcoming' ? 'text-amber-700 font-medium' : 'text-gray-500'}`}>
+                    <p className="font-medium text-gray-800">{task.title}</p>
+                    <p className={`text-xs ${urgency === 'overdue' ? 'text-red-600 font-semibold' : urgency === 'upcoming' ? 'text-amber-700 font-medium' : 'text-gray-500'}`}>
                       {event.title} · {t('events.dueDate')}: {formatDate(task.dueDate)}
                       {urgency === 'overdue' ? ` · ${t('events.taskOverdue')}` : ''}
                       {urgency === 'upcoming' ? ` · ${t('events.taskUpcoming')}` : ''}
