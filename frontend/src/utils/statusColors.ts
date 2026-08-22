@@ -1,7 +1,7 @@
 import { EventStatus, TaskStatus } from '../types';
 
 export const EVENT_STATUS_COLORS: Record<EventStatus, string> = {
-  מתוכנן: '#9CA3AF',
+  מתוכנן: '#0EA5E9',
   בהכנה: '#F59E0B',
   הושלם: '#16A34A',
   בוטל: '#EF4444',

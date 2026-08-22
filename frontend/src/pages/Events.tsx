@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { getEvents, createEvent, deleteEvent, addTask, updateTask } from '../api/events';
+import { getEvents, createEvent, updateEvent, deleteEvent, addTask, updateTask, deleteTask } from '../api/events';
 import { getBranches } from '../api/branches';
 import { getSettings } from '../api/settings';
 import { getUsers } from '../api/users';
@@ -10,7 +10,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { hasWriteAccess } from '../utils/roles';
 import { formatDate, toDateInputValue } from '../utils/date';
 import { daysUntil } from '../utils/alerts';
-import { EVENT_STATUS_COLORS } from '../utils/statusColors';
+import { EVENT_STATUS_COLORS, TASK_STATUS_COLORS } from '../utils/statusColors';
 import Button from '../components/ui/Button';
 import Modal from '../components/ui/Modal';
 import Badge from '../components/ui/Badge';
@@ -31,10 +31,28 @@ function AlertIcon({ className = 'w-4 h-4' }: { className?: string }) {
   );
 }
 
-function XIcon({ className = 'w-4 h-4' }: { className?: string }) {
+function FlagIcon({ className = 'w-4 h-4' }: { className?: string }) {
   return (
     <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+      <path
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        strokeWidth={2}
+        d="M3 3v1.5M3 21v-6m0 0l2.77-.693a9 9 0 016.208.682l.108.054a9 9 0 006.086.71l3.114-.732a48.524 48.524 0 01-.005-10.499l-3.11.732a9 9 0 01-6.085-.711l-.108-.054a9 9 0 00-6.208-.682L3 4.5M3 15V4.5"
+      />
+    </svg>
+  );
+}
+
+function PencilIcon({ className = 'w-4 h-4' }: { className?: string }) {
+  return (
+    <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+      <path
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        strokeWidth={2}
+        d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125"
+      />
     </svg>
   );
 }
@@ -53,7 +71,7 @@ export default function Events() {
   const [searchQuery, setSearchQuery] = useState('');
   const [viewMode, setViewMode] = useState<'cards' | 'table'>('cards');
   const [expandedIds, setExpandedIds] = useState<Set<string>>(new Set());
-  const [addTaskEventId, setAddTaskEventId] = useState<string | null>(null);
+  const [editing, setEditing] = useState<StudioEvent | null>(null);
   const [newTaskForm, setNewTaskForm] = useState({ title: '', assigneeId: '', dueDate: '' });
   const [addModal, setAddModal] = useState(false);
   const [form, setForm] = useState(emptyForm);
@@ -100,13 +118,45 @@ export default function Events() {
     [filtered]
   );
 
-  const handleCreate = async () => {
+  const closeModal = () => {
+    setAddModal(false);
+    setEditing(null);
+    setForm(emptyForm);
+    setNewTaskForm({ title: '', assigneeId: '', dueDate: '' });
+  };
+
+  const openAdd = () => {
+    setForm(emptyForm);
+    setEditing(null);
+    setAddModal(true);
+  };
+
+  const openEdit = (ev: StudioEvent) => {
+    setForm({
+      title: ev.title,
+      description: ev.description || '',
+      branchId: idOf(ev.branchId) || '',
+      eventType: ev.eventType,
+      eventDate: toDateInputValue(ev.eventDate),
+      prepareDate: toDateInputValue(ev.prepareDate),
+    });
+    setNewTaskForm({ title: '', assigneeId: '', dueDate: '' });
+    setEditing(ev);
+    setAddModal(false);
+  };
+
+  const handleSave = async () => {
     setSaving(true);
     try {
-      const created = await createEvent({ ...form, branchId: form.branchId || null } as never);
-      setEvents((prev) => [...prev, created]);
-      setAddModal(false);
-      setForm(emptyForm);
+      const payload = { ...form, branchId: form.branchId || null } as never;
+      if (editing) {
+        const updated = await updateEvent(editing._id, payload);
+        setEvents((prev) => prev.map((e) => (e._id === updated._id ? updated : e)));
+      } else {
+        const created = await createEvent(payload);
+        setEvents((prev) => [...prev, created]);
+      }
+      closeModal();
     } finally {
       setSaving(false);
     }
@@ -116,6 +166,7 @@ export default function Events() {
     if (!confirm(t('events.deleteConfirm'))) return;
     await deleteEvent(id);
     setEvents((prev) => prev.filter((e) => e._id !== id));
+    closeModal();
   };
 
   const toggleExpanded = (id: string) => {
@@ -131,23 +182,27 @@ export default function Events() {
     const nextStatus = task.status === 'הושלם' ? 'לביצוע' : 'הושלם';
     const updated = await updateTask(eventId, task._id, { status: nextStatus });
     setEvents((prev) => prev.map((e) => (e._id === eventId ? updated : e)));
-  };
-
-  const openAddTask = (eventId: string) => {
-    setNewTaskForm({ title: '', assigneeId: '', dueDate: '' });
-    setAddTaskEventId(eventId);
+    if (editing && editing._id === eventId) setEditing(updated);
   };
 
   const handleAddTask = async () => {
     const title = newTaskForm.title.trim();
-    if (!title || !addTaskEventId) return;
-    const updated = await addTask(addTaskEventId, {
+    if (!title || !editing) return;
+    const updated = await addTask(editing._id, {
       title,
       assigneeId: newTaskForm.assigneeId || null,
       dueDate: newTaskForm.dueDate || null,
     });
-    setEvents((prev) => prev.map((e) => (e._id === addTaskEventId ? updated : e)));
-    setAddTaskEventId(null);
+    setEvents((prev) => prev.map((e) => (e._id === editing._id ? updated : e)));
+    setEditing(updated);
+    setNewTaskForm({ title: '', assigneeId: '', dueDate: '' });
+  };
+
+  const handleDeleteTask = async (taskId: string) => {
+    if (!editing) return;
+    const updated = await deleteTask(editing._id, taskId);
+    setEvents((prev) => prev.map((e) => (e._id === editing._id ? updated : e)));
+    setEditing(updated);
   };
 
   const branchName = (e: StudioEvent) => {
@@ -254,7 +309,7 @@ export default function Events() {
             {t('events.tableToggle')}
           </button>
           {canWrite && (
-            <Button size="sm" onClick={() => setAddModal(true)}>
+            <Button size="sm" onClick={openAdd}>
               + {t('events.addEvent')}
             </Button>
           )}
@@ -273,42 +328,35 @@ export default function Events() {
                 onClick={() => toggleExpanded(e._id)}
               >
                 <div className="flex items-center gap-2">
-                  {canWrite && (
-                    <button
-                      type="button"
-                      className="text-gray-400 hover:text-red-500 flex-shrink-0"
-                      onClick={(ev) => {
-                        ev.stopPropagation();
-                        handleDelete(e._id);
-                      }}
-                      aria-label={t('common.delete')}
-                    >
-                      <XIcon className="w-4 h-4" />
-                    </button>
-                  )}
+                  <span className="flex-shrink-0" title={severity ? t(severity === 'overdue' ? 'events.taskOverdue' : 'events.taskUpcoming') : undefined}>
+                    {severity ? (
+                      <AlertIcon className={`w-5 h-5 ${severity === 'overdue' ? 'text-red-500' : 'text-yellow-500'}`} />
+                    ) : (
+                      <FlagIcon className="w-5 h-5 text-primary" />
+                    )}
+                  </span>
                   <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-1.5">
-                      <Link
-                        to={`/events/${e._id}`}
-                        className="text-sm font-semibold text-gray-800 hover:text-primary"
-                        onClick={(ev) => ev.stopPropagation()}
-                      >
-                        {e.title}
-                      </Link>
-                      {severity && (
-                        <span
-                          className={severity === 'overdue' ? 'text-red-500' : 'text-yellow-500'}
-                          title={t(severity === 'overdue' ? 'events.taskOverdue' : 'events.taskUpcoming')}
-                        >
-                          <AlertIcon className="w-4 h-4" />
-                        </span>
-                      )}
-                    </div>
-                    <p className="text-xs text-gray-500 truncate">
-                      {branchName(e)} · {t(`eventTypes.${e.eventType}`)} · {t('events.eventDate')}: {formatDate(e.eventDate)}
+                    <p className="text-sm font-semibold text-gray-800">{e.title}</p>
+                    <p className="text-xs text-gray-500">{branchName(e)}</p>
+                    <p className="text-xs text-gray-500">{t(`eventTypes.${e.eventType}`)}</p>
+                    <p className="text-xs text-gray-500">
+                      {t('events.eventDate')}: {formatDate(e.eventDate)}
                     </p>
                   </div>
                   <Badge label={t(`eventStatus.${e.status}`)} color={EVENT_STATUS_COLORS[e.status]} />
+                  {canWrite && (
+                    <button
+                      type="button"
+                      className="text-gray-400 hover:text-primary flex-shrink-0"
+                      onClick={(ev) => {
+                        ev.stopPropagation();
+                        openEdit(e);
+                      }}
+                      aria-label={t('common.edit')}
+                    >
+                      <PencilIcon className="w-4 h-4" />
+                    </button>
+                  )}
                 </div>
                 {expanded && (
                   <div className="mt-2 pt-2 border-t border-gray-100 space-y-1.5" onClick={(ev) => ev.stopPropagation()}>
@@ -348,13 +396,6 @@ export default function Events() {
                           </div>
                         );
                       })
-                    )}
-                    {canWrite && (
-                      <div className="pt-1">
-                        <Button size="sm" variant="secondary" onClick={() => openAddTask(e._id)}>
-                          + {t('events.addTask')}
-                        </Button>
-                      </div>
                     )}
                   </div>
                 )}
@@ -413,7 +454,7 @@ export default function Events() {
         </div>
       )}
 
-      <Modal open={addModal} onClose={() => setAddModal(false)} title={t('events.addEvent')} size="lg">
+      <Modal open={addModal || !!editing} onClose={closeModal} title={editing ? editing.title : t('events.addEvent')} size="lg">
         <div className="space-y-4">
           <div>
             <label className="label">{t('events.eventTitle')}</label>
@@ -454,58 +495,81 @@ export default function Events() {
               <input type="date" className="input" value={form.prepareDate} onChange={(e) => setForm((f) => ({ ...f, prepareDate: e.target.value }))} />
             </div>
           </div>
-          <div className="flex gap-3 justify-end">
-            <Button variant="secondary" onClick={() => setAddModal(false)}>
-              {t('common.cancel')}
-            </Button>
-            <Button loading={saving} onClick={handleCreate} disabled={!form.title || !form.eventDate || !form.prepareDate}>
-              {t('common.save')}
-            </Button>
-          </div>
-        </div>
-      </Modal>
 
-      <Modal open={!!addTaskEventId} onClose={() => setAddTaskEventId(null)} title={t('events.addTask')}>
-        <div className="space-y-4">
-          <div>
-            <label className="label">{t('events.taskTitle')}</label>
-            <input
-              className="input"
-              value={newTaskForm.title}
-              onChange={(ev) => setNewTaskForm((f) => ({ ...f, title: ev.target.value }))}
-            />
-          </div>
-          <div>
-            <label className="label">{t('events.assignee')}</label>
-            <select
-              className="input"
-              value={newTaskForm.assigneeId}
-              onChange={(ev) => setNewTaskForm((f) => ({ ...f, assigneeId: ev.target.value }))}
-            >
-              <option value="">—</option>
-              {users.map((u) => (
-                <option key={u._id} value={u._id}>
-                  {u.name}
-                </option>
-              ))}
-            </select>
-          </div>
-          <div>
-            <label className="label">{t('events.dueDate')}</label>
-            <input
-              type="date"
-              className="input"
-              value={toDateInputValue(newTaskForm.dueDate)}
-              onChange={(ev) => setNewTaskForm((f) => ({ ...f, dueDate: ev.target.value }))}
-            />
-          </div>
-          <div className="flex gap-3 justify-end">
-            <Button variant="secondary" onClick={() => setAddTaskEventId(null)}>
-              {t('common.cancel')}
-            </Button>
-            <Button onClick={handleAddTask} disabled={!newTaskForm.title.trim()}>
-              {t('common.save')}
-            </Button>
+          {editing && (
+            <div className="border-t border-gray-100 pt-4 space-y-2">
+              <label className="label">{t('events.tasks')}</label>
+              {editing.tasks.length === 0 && <p className="text-sm text-gray-400">{t('common.noData')}</p>}
+              {editing.tasks.map((task) => {
+                const done = task.status === 'הושלם';
+                return (
+                  <div key={task._id} className="flex items-center gap-2 bg-gray-50 rounded px-3 py-1.5">
+                    <input
+                      type="checkbox"
+                      className="w-4 h-4 accent-primary flex-shrink-0"
+                      checked={done}
+                      onChange={() => handleToggleTask(editing._id, task)}
+                    />
+                    <span className={`flex-1 text-sm ${done ? 'text-gray-400 line-through' : 'text-gray-800'}`}>{task.title}</span>
+                    {!done && (
+                      <Badge label={t(`taskStatus.${task.status}`)} color={TASK_STATUS_COLORS[task.status]} />
+                    )}
+                    <button className="text-xs text-red-500" onClick={() => handleDeleteTask(task._id)}>
+                      {t('common.delete')}
+                    </button>
+                  </div>
+                );
+              })}
+              <div className="grid sm:grid-cols-4 gap-2 pt-1">
+                <input
+                  className="input sm:col-span-2"
+                  placeholder={t('events.taskTitle')}
+                  value={newTaskForm.title}
+                  onChange={(ev) => setNewTaskForm((f) => ({ ...f, title: ev.target.value }))}
+                />
+                <select
+                  className="input"
+                  value={newTaskForm.assigneeId}
+                  onChange={(ev) => setNewTaskForm((f) => ({ ...f, assigneeId: ev.target.value }))}
+                >
+                  <option value="">{t('events.assignee')}</option>
+                  {users.map((u) => (
+                    <option key={u._id} value={u._id}>
+                      {u.name}
+                    </option>
+                  ))}
+                </select>
+                <input
+                  type="date"
+                  className="input"
+                  value={toDateInputValue(newTaskForm.dueDate)}
+                  onChange={(ev) => setNewTaskForm((f) => ({ ...f, dueDate: ev.target.value }))}
+                />
+              </div>
+              <div className="flex justify-end">
+                <Button size="sm" onClick={handleAddTask} disabled={!newTaskForm.title.trim()}>
+                  + {t('events.addTask')}
+                </Button>
+              </div>
+            </div>
+          )}
+
+          <div className="flex items-center justify-between">
+            <div>
+              {editing && (
+                <button className="text-sm text-red-500" onClick={() => handleDelete(editing._id)}>
+                  {t('common.delete')}
+                </button>
+              )}
+            </div>
+            <div className="flex gap-3">
+              <Button variant="secondary" onClick={closeModal}>
+                {t('common.cancel')}
+              </Button>
+              <Button loading={saving} onClick={handleSave} disabled={!form.title || !form.eventDate || !form.prepareDate}>
+                {t('common.save')}
+              </Button>
+            </div>
           </div>
         </div>
       </Modal>
