@@ -113,7 +113,12 @@ export default function Dashboard() {
             {tasksDue.map(({ event, task }) => {
               const urgency = taskUrgency(task);
               return (
-                <Card key={task._id} className="flex items-center gap-3">
+                <Card
+                  key={task._id}
+                  className={`flex items-center gap-3 ${
+                    urgency === 'overdue' ? 'border-r-red-500' : urgency === 'upcoming' ? 'border-r-yellow-500' : ''
+                  }`}
+                >
                   <input
                     type="checkbox"
                     className="w-4 h-4 accent-primary flex-shrink-0"
