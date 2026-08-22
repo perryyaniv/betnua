@@ -50,6 +50,7 @@ export default function Events() {
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
   const [filters, setFilters] = useState({ branchId: '', eventType: '', status: '' });
+  const [searchQuery, setSearchQuery] = useState('');
   const [viewMode, setViewMode] = useState<'cards' | 'table'>('cards');
   const [expandedIds, setExpandedIds] = useState<Set<string>>(new Set());
   const [addTaskEventId, setAddTaskEventId] = useState<string | null>(null);
@@ -70,15 +71,28 @@ export default function Events() {
 
   const idOf = (v?: string | { _id: string } | null) => (!v ? null : typeof v === 'string' ? v : v._id);
 
+  const matchesSearch = (e: StudioEvent, query: string) => {
+    const q = query.trim().toLowerCase();
+    if (!q) return true;
+    const branch = e.branchId
+      ? typeof e.branchId === 'string'
+        ? branches.find((b) => b._id === e.branchId)?.name
+        : e.branchId.name
+      : t('events.studioWide');
+    const haystack = [e.title, branch ?? '', t(`eventTypes.${e.eventType}`), t(`eventStatus.${e.status}`), ...e.tasks.map((tk) => tk.title)];
+    return haystack.some((h) => h.toLowerCase().includes(q));
+  };
+
   const filtered = useMemo(
     () =>
       events.filter(
         (e) =>
           (!filters.branchId || idOf(e.branchId) === filters.branchId) &&
           (!filters.eventType || e.eventType === filters.eventType) &&
-          (!filters.status || e.status === filters.status)
+          (!filters.status || e.status === filters.status) &&
+          matchesSearch(e, searchQuery)
       ),
-    [events, filters]
+    [events, filters, searchQuery, branches]
   );
 
   const sorted = useMemo(
@@ -169,6 +183,17 @@ export default function Events() {
 
   return (
     <div className="space-y-4">
+      <div>
+        <label className="label text-right">{t('common.search')}</label>
+        <input
+          type="text"
+          className="input w-full"
+          placeholder={t('events.searchPlaceholder')}
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+        />
+      </div>
+
       <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-2">
         <div className="flex flex-nowrap gap-2 min-w-0">
           <div className="flex-1 min-w-0">
