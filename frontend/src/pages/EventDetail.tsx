@@ -135,13 +135,13 @@ export default function EventDetail() {
                 urgency === 'overdue'
                   ? 'border-red-300 border-r-red-500 bg-red-50'
                   : urgency === 'upcoming'
-                    ? 'border-amber-300 border-r-amber-500 bg-amber-50'
+                    ? 'border-yellow-300 border-r-yellow-500 bg-yellow-50'
                     : ''
               }`}
             >
               <div>
                 <p className="font-medium text-gray-800">{task.title}</p>
-                <p className={`text-xs ${urgency === 'overdue' ? 'text-red-600 font-semibold' : urgency === 'upcoming' ? 'text-amber-700 font-medium' : 'text-gray-500'}`}>
+                <p className={`text-xs ${urgency === 'overdue' ? 'text-red-600 font-semibold' : urgency === 'upcoming' ? 'text-yellow-700 font-medium' : 'text-gray-500'}`}>
                   {t('events.assignee')}: {assigneeName(task.assigneeId)}
                   {task.dueDate ? ` · ${t('events.dueDate')}: ${formatDate(task.dueDate)}` : ''}
                   {urgency === 'overdue' ? ` · ${t('events.taskOverdue')}` : ''}

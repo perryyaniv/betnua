@@ -272,7 +272,7 @@ export default function Events() {
                       </Link>
                       {severity && (
                         <span
-                          className={severity === 'overdue' ? 'text-red-500' : 'text-amber-500'}
+                          className={severity === 'overdue' ? 'text-red-500' : 'text-yellow-500'}
                           title={t(severity === 'overdue' ? 'events.taskOverdue' : 'events.taskUpcoming')}
                         >
                           <AlertIcon className="w-4 h-4" />
@@ -310,17 +310,15 @@ export default function Events() {
                                     : urgency === 'overdue'
                                       ? 'text-red-600 font-semibold'
                                       : urgency === 'upcoming'
-                                        ? 'text-amber-600 font-semibold'
+                                        ? 'text-yellow-600 font-semibold'
                                         : 'text-gray-800'
                                 }`}
                               >
                                 {!done && urgency && <AlertIcon className="w-3.5 h-3.5 flex-shrink-0" />}
                                 {task.title}
                               </p>
-                              <p className="text-xs text-gray-500">
-                                {t('events.assignee')}: {assigneeName(task.assigneeId)}
-                                {task.dueDate ? ` · ${t('events.dueDate')}: ${formatDate(task.dueDate)}` : ''}
-                              </p>
+                              <p className="text-xs text-gray-500">{t('events.assignee')}: {assigneeName(task.assigneeId)}</p>
+                              {task.dueDate && <p className="text-xs text-gray-500">{t('events.dueDate')}: {formatDate(task.dueDate)}</p>}
                             </div>
                           </div>
                         );

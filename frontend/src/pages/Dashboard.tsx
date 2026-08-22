@@ -95,10 +95,10 @@ export default function Dashboard() {
             {t('dashboard.tasksDue')}
           </p>
         </Card>
-        <Card className={`text-center !py-1.5 !px-2 ${upcomingCount > 0 ? 'border-r-amber-500' : ''}`}>
-          <p className={`text-2xl font-bold leading-none ${upcomingCount > 0 ? 'text-amber-600' : 'text-primary'}`}>{upcomingCount}</p>
+        <Card className={`text-center !py-1.5 !px-2 ${upcomingCount > 0 ? 'border-r-yellow-500' : ''}`}>
+          <p className={`text-2xl font-bold leading-none ${upcomingCount > 0 ? 'text-yellow-600' : 'text-primary'}`}>{upcomingCount}</p>
           <p className="text-xs text-gray-500 mt-1 flex items-center justify-center gap-1">
-            {upcomingCount > 0 && <AlertIcon className="w-3.5 h-3.5 text-amber-500" />}
+            {upcomingCount > 0 && <AlertIcon className="w-3.5 h-3.5 text-yellow-500" />}
             {t('dashboard.tasksAlert')}
           </p>
         </Card>
@@ -123,17 +123,16 @@ export default function Dashboard() {
                   <Link to={`/events/${event._id}`} className="flex-1 min-w-0 hover:opacity-80">
                     <p
                       className={`font-medium flex items-center gap-1 ${
-                        urgency === 'overdue' ? 'text-red-600 font-semibold' : urgency === 'upcoming' ? 'text-amber-600 font-semibold' : 'text-gray-800'
+                        urgency === 'overdue' ? 'text-red-600 font-semibold' : urgency === 'upcoming' ? 'text-yellow-600 font-semibold' : 'text-gray-800'
                       }`}
                     >
                       {urgency && <AlertIcon className="w-3.5 h-3.5 flex-shrink-0" />}
                       {task.title}
                     </p>
-                    <p className="text-xs text-gray-500">
-                      {event.title} · {t('events.dueDate')}: {formatDate(task.dueDate)}
-                      {urgency === 'overdue' ? ` · ${t('events.taskOverdue')}` : ''}
-                      {urgency === 'upcoming' ? ` · ${t('events.taskUpcoming')}` : ''}
-                    </p>
+                    <p className="text-sm font-semibold text-gray-700">{event.title}</p>
+                    <p className="text-xs text-gray-500">{t('events.dueDate')}: {formatDate(task.dueDate)}</p>
+                    {urgency === 'overdue' && <p className="text-xs text-red-600 font-medium">{t('events.taskOverdue')}</p>}
+                    {urgency === 'upcoming' && <p className="text-xs text-yellow-600 font-medium">{t('events.taskUpcoming')}</p>}
                   </Link>
                 </Card>
               );
